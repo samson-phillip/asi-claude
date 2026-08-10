@@ -38,10 +38,46 @@ harness. Expect to create the project structure as part of the first real task.
 - `kotlin` — "Android 2.0"
 - `swift` — "iOS Swift 2.0"
 
+## Design Authority (binding on every UI change)
+
+**Always use the Attorney Shield palette in `design/color-system.md`. No other
+colour values, ever.** That file is the transcription of
+`Attorney-Shield Color Scheme Review.pdf` plus the contrast analysis needed to
+apply it safely.
+
+When references disagree, resolve in this order:
+
+| Rank | Source | Governs |
+|---|---|---|
+| 1 | `design/color-system.md` (colour PDF) | All colour values, no exceptions |
+| 2 | CodePen "Attorney - Shield App V6" — `notes/design-reference-codepen.md` | Layout, typography, screen inventory, flow, look & feel |
+| 3 | `member-client` | Behaviour, API contracts, state machines, errors |
+
+Three rules that are easy to get wrong:
+
+- **`member-client` is NOT the visual reference.** Its CSS is blue/violet
+  (`#4f7cff`, `#7a5cff`) — the "avoid" territory in the PDF. Copy its logic,
+  never its palette.
+- **Never white text on either gold.** White on Justice Gold `#C4850A` is 3.13:1
+  and fails WCAG AA. Use Shield Navy `#0D1B2E` on gold (5.53:1).
+- **Mid Navy `#1A3A5C` is borders only** — 1.49:1 on Shield Navy. For muted text
+  on dark use Steel Blue `#8DA8C4`.
+
+Typography is **Inter** throughout: Display 800 (tight), Title 700, Body 500,
+Eyebrow 800 caps.
+
+## Plans
+- [`plans/2026-08-10-development-plan.md`](plans/2026-08-10-development-plan.md)
+- [`plans/2026-08-10-testing-plan.md`](plans/2026-08-10-testing-plan.md)
+
+**Before building any onboarding screen**, read the development plan §3: the
+CodePen journey (35 screens, sign-up/payment/trial/guest) is far larger than the
+documented API supports. Those stages are blocked, not merely unbuilt.
+
 ## Source of Truth
-`member-client` is the mobile web application and is the reference
+`member-client` is the mobile web application and is the **behavioural** reference
 implementation for both mobile apps. Match its screens, flows, and behaviour
-unless told otherwise. Additional design files will be supplied as needed.
+unless told otherwise — but take colour from the palette above, not from its CSS.
 
 `member-client` already has working API integrations. Reuse the same endpoints,
 request/response shapes, and auth flow in `kotlin` and `swift`. **Do not invent
