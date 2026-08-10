@@ -29,32 +29,75 @@ otherwise bite: **`member-client`'s blue/violet CSS is not the palette**, and
 
 ## 3. Scope reality check — read this before estimating
 
-The two references describe **very different product sizes**, and the API only
-supports the smaller one.
+The design board is **far larger than `member-client`**, and the API covers only
+a fraction of it. Figures below are counted from the reference itself
+([notes/design-reference-codepen.md](../notes/design-reference-codepen.md)), not
+from its masthead.
 
-**CodePen describes:** 35 screens, 5 stages, 3 user types (Standard Member,
-7-Day Limited Trial, Guest), an app↔web handoff, a paywall with pricing
-(`$19/mo`, `$179/yr`, `$29/mo` family), and an in-app nudge system.
+**The CodePen board actually contains 66 phone frames** — 7 welcome-carousel
+frames plus 59 numbered/annotated screens. Of the 66, **9 carry web browser
+chrome** (`04`, `05`, `06`, `07`, `V1`, `T1`–`T4`) and **57 are native**.
+Its masthead claim of "35 screens · 5 stages" is wrong on both counts: 35 is
+merely the highest plain screen number, and only Stages **1, 4 and 5** exist —
+there is no Stage 2 or Stage 3 header anywhere in the document.
 
-**`member-client` implements:** 3 screens — `LoginScreen` → `HomeScreen` →
+**`member-client` implements 3 screens** — `LoginScreen` → `HomeScreen` →
 `CallScreen`.
 
-**The documented API supports only that smaller set.** Every operation in
-`member-client/src/lib/api.ts`:
+### Payment is on the web — this is the key structural finding
+
+Plan choice, Stripe checkout and confirmation are **web pages on
+`attorney-shield.com`**, not native screens. A deep link then hands the member
+back to the app with their email pre-filled, and native registration resumes at
+screen `08`. So payment always precedes phone verification.
+
+```
+native welcome (1-6) -> WEB 04 plan -> 05 Stripe -> 06 confirm -> 07 deep link
+   -> native 08 phone -> 09 verify -> 10 details -> 11 address -> 12 PIN -> home
+```
+
+Those web frames sit inside the Stage 1 section and therefore **inherit a
+"Native App" badge despite being browser frames** — a labelling bug in the
+reference, not an instruction to build them natively. (A "Web" badge style is
+defined in its stylesheet and never applied to anything.)
+
+This materially reduces native scope: **we do not build checkout.** It also
+means the real prices are **FreedomPlus `$16/mo`** and **FreedomFAMILY
+`$38/mo`**, plus a `$0`-today 7-day trial — *not* the `$19`/`$179`/`$29` figures
+on the colour PDF's marketing-site preview, which are a different surface.
+
+### What is still blocked
+
+Payment being on web does **not** clear the blockage — it moves it. Every
+documented operation is:
 
 - GraphQL `POST /query` — `login`, `user`, `casesByUser`,
   `adminIncidentTypeList` + `adminLanguageList`, `partnerAttorneys`
 - REST `POST {API_BASE_URL}/api/vonage/video/member-call`
 
-There is **no endpoint for sign-up, payment, subscription, trial activation, or
-guest sessions**. CLAUDE.md forbids inventing endpoints. Therefore:
+There is **no endpoint** behind any of the following native screens:
 
-> **Stages covering account creation, payment, trial, and guest access are
-> BLOCKED on backend work that does not exist yet.** They cannot be built as
-> functioning features, only as static UI against mocks.
+| Native feature | Screens | Endpoint |
+|---|---|---|
+| Phone entry + SMS/OTP verification | 08, 09 | none |
+| Personal details, address | 10, 11 | none |
+| 4-digit PIN set / verify / end session | 12, 34 | none |
+| Document vault ("Digital Glovebox") | 14, 14A–14D, 31 | none |
+| Situation preferences (pick 3) | 13B, 13C, 27B | none |
+| Activity timeline | 32 | none |
+| Plan / payment method / family sub-accounts | 33A, 33B, 33D | none |
+| Notifications & nudge system | 15, 22–26 | none |
+| Trial gate + in-app conversion | V2, T5–T8 | none |
+| Guest session & feature gates | G1–G3 | none |
 
-This is the single biggest planning risk and needs a decision before Phase 3
-(§6). Options in §9.
+CLAUDE.md forbids inventing endpoints. Therefore:
+
+> **Native registration (08–12) and the entire post-registration feature set are
+> BLOCKED on backend work that does not exist yet.** They can be built as UI
+> against mocks, but not as functioning features.
+
+What *is* unblocked is the spine: welcome → login → home → connect → call.
+That is Phases 0–2. Everything above is Phase 3+, and needs §9 answered first.
 
 ### What we can build today
 
@@ -66,8 +109,11 @@ This is the single biggest planning risk and needs a decision before Phase 3
 | Incident-type tiles (multilingual) | `adminIncidentTypeList` + `adminLanguageList` | ✅ |
 | Attorney pre-selection | `partnerAttorneys` | ✅ |
 | Place video call + Vonage credentials | `member-call` | ✅ |
-| Welcome/onboarding carousel | none needed (static) | ✅ |
-| Sign-up, payment, trial, guest | **none** | ❌ Blocked |
+| Welcome/onboarding carousel (7 frames) | none needed (static) | ✅ |
+| Deep-link return from web checkout | none needed (client-side) | ✅ |
+| Plan choice / checkout / confirmation | **not ours — web** | ➖ Out of native scope |
+| Native registration 08–12, vault, family, nudges | **none** | ❌ Blocked (§3) |
+| Trial gate, guest gate | **none** | ❌ Blocked (§3) |
 | Token refresh | **none used** | ❌ See §8 |
 
 ---
@@ -148,15 +194,19 @@ resolution with `DEV_DEFAULTS` fallback.
 *Exit:* login against dev returns a token and resolves org/jurisdiction; unit
 tests cover the fallback paths in §5.7.
 
-**Phase 2 — Login → Home → Call (the working spine)**
-The three `member-client` screens in the Attorney Shield visual system.
-Includes the welcome/onboarding carousel (static, no API needed).
+**Phase 2 — Welcome → Login → Home → Call (the working spine)**
+The three `member-client` screens in the Attorney Shield visual system, plus the
+7-frame welcome carousel (static, no API needed) and the **deep-link return
+handler** (Universal Links / App Links with email pre-fill and the "Open app
+manually" fallback) — registration cannot continue without it.
 *Exit:* a real video call connects on both platforms; all six call phases
-reachable in tests; behaviour parity checklist (§5) signed off.
+reachable in tests; deep link resumes the app from a cold start; behaviour parity
+checklist (§5) signed off.
 
-**Phase 3 — Onboarding journey** *(gated — see §3)*
-Remaining CodePen stages. **Requires a decision on the missing endpoints first.**
-Built against mocks only if we explicitly choose the mock path.
+**Phase 3 — Registration and member features** *(gated — see §3)*
+Screens 08–12 and the post-registration set (vault, family, activity, nudges,
+trial/guest gates). **Requires §9.1 and §9.2 answered first.** Built against
+mocks only if we explicitly choose the mock path.
 
 **Phase 4 — Hardening**
 Accessibility audit, dynamic type, rotation, offline/airplane-mode, token
@@ -172,6 +222,9 @@ is answered.
 - **Permissions:** camera and microphone are required for the call; location is
   optional and must degrade silently. Request at point of use with a clear
   rationale, and handle permanent denial.
+- **Deep links** are a product requirement, not plumbing: iOS Universal Links and
+  Android App Links from `attorney-shield.com`, resuming registration with the
+  email pre-filled, plus the manual fallback. Must survive a cold start.
 - **No secrets in the repo.** `apiKey` arrives per-call from the backend — never
   bundle Vonage credentials.
 - **Config per environment**, mirroring `config.ts` (`GRAPHQL_URL`,
@@ -181,7 +234,9 @@ is answered.
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| **Missing endpoints for signup/payment/trial/guest** | Blocks ~2 of 5 stages | Resolve §9 before Phase 3; Phases 0–2 are unaffected |
+| **App Store / Play compliance on web checkout.** The flow sells a digital subscription through web Stripe and deep-links back. Apple's rules on purchases for digital content and on steering users to external payment are the single most likely cause of a rejection here, and Google has parallel constraints | Could block release outright — not just delay it | **Settle the store strategy before Phase 3**, not at submission. The reference already anticipates part of this (33A carries App Store's required delete-account wording; no in-app plan changes). Needs a definitive answer on external-purchase entitlements vs in-app purchase |
+| **Missing endpoints for native registration, vault, family, nudges, trial/guest gates** | Blocks everything past the call spine (§3) | Resolve §9.1 before Phase 3; Phases 0–2 are unaffected |
+| **Deep-link return is load-bearing.** Registration cannot continue without it, and the reference plans to branch it by origin (app-initiated vs website-mobile) | A broken link strands members mid-signup, after payment | Treat as a Phase 2 deliverable with its own tests, not an afterthought. Universal Links + App Links, with the "Open app manually" fallback |
 | **No token refresh exists** — `login` returns a `refreshToken` but `api.ts` never sends it; there is no refresh operation | Sessions die with no recovery path; native apps are backgrounded far longer than a web tab, so this hurts more than it does on web | Spike in Phase 1. Interim: detect auth failure and re-prompt login cleanly |
 | **Web→native video SDK gap** — reference uses `@vonage/client-sdk-video`; native needs the Vonage Video Android/iOS SDKs | Could invalidate Phase 2 estimates | **De-risk in Phase 0** with a spike proving `apiKey`/`sessionId`/`token` connect natively |
 | `member-call` has **no auth** today | Abuse surface | Flag to backend; do not design around it |
@@ -191,19 +246,29 @@ is answered.
 
 ## 9. Open questions — need answers before Phase 3
 
-1. **Sign-up / payment / trial / guest endpoints — do they exist?** If not, is
-   the intent that (a) backend builds them, (b) we build static UI against
-   mocks, or (c) onboarding stays on web and the app deep-links into it? The
-   CodePen's "App ↔ Web handoff" badge hints at (c), which would substantially
-   reduce native scope. **This is the highest-value question to settle.**
-2. **Token refresh** — is there a refresh operation on the gateway we should use?
-3. **Error/danger colour** — the palette forbids `#FF4500` and supplies no error
+1. **Endpoints for native registration and the post-registration feature set —
+   do they exist?** *Partially answered by the reference:* checkout is web, so
+   payment is out of native scope. But screens 08–12 (phone, OTP, details,
+   address, PIN) and the vault / family / activity / nudge / trial / guest
+   features have no endpoints at all (§3). Is the intent that backend builds
+   them, or that we ship UI against mocks? **Still the highest-value question.**
+2. **App Store / Play strategy for a web-purchased subscription** — external
+   purchase entitlement, or in-app purchase? This decides whether store review
+   is on the critical path, and it is cheaper to answer now than at submission.
+3. **Token refresh** — is there a refresh operation on the gateway we should use?
+4. **Error/danger colour** — the palette forbids `#FF4500` and supplies no error
    colour. What should errors and hang-up use? (See colour-system §6.)
-4. **Payments** — App Store / Play billing, or web checkout? This decides whether
-   store review is on the critical path.
 5. **Which CodePen palette values are stale** — confirm the PDF supersedes
    Deep Navy `#0A1626`, Live Green `#2E9E5B`, Trust Steel `#1A5FA8`.
-6. **Guest user type** — what can a guest actually do without an account?
+6. **Family plan capacity is stated four different ways** in the reference —
+   "covers up to 5" / "includes 3, add up to 2 more" / "You + 3" / "You + up to
+   4" / "3 of 5 on your plan". Whether 5 includes the primary account is
+   genuinely unresolved. **Must be settled before building the member stepper.**
+7. **Frame geometry** — the board is drawn at 292×600 px but labelled
+   "iPhone · 375pt". Confirm 375pt is the intent, in which case all reference
+   measurements need rescaling ≈1.284×.
+8. **Guest user type** — the reference says guests browse the real home and hit a
+   gate on every member feature. Confirm nothing privileged is reachable.
 
 ## 10. Immediate next steps
 

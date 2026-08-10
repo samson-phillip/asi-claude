@@ -96,6 +96,24 @@ Cover all six phases of `starting | connecting | live | ended | no-attorney | er
 | T-C-14 | Backgrounded during call | Documented, deliberate behaviour |
 | T-C-15 | `ttlSeconds` | Sent as `3600` |
 
+### Deep-link return from web checkout
+Load-bearing: registration cannot continue without it, and it fires **after the
+member has paid**, so a failure here strands them mid-signup.
+
+| ID | Case | Expected |
+|---|---|---|
+| T-D-1 | Universal/App Link, app installed & warm | Opens app, resumes at screen 08 |
+| T-D-2 | Same link, app **cold** | Same destination; no lost state |
+| T-D-3 | Link carries email | Email pre-filled |
+| T-D-4 | Malformed/partial link | Graceful landing, never a crash or blank screen |
+| T-D-5 | App not installed | OS fallback behaves; store route intact |
+| T-D-6 | "Open app manually" fallback | Works when the automatic link does not |
+| T-D-7 | Link replayed / opened twice | Idempotent — no duplicate registration |
+| T-D-8 | Tampered or foreign-origin link | Rejected; only `attorney-shield.com` honoured |
+
+T-D-8 matters: a deep link is untrusted input. Nothing in it should be trusted to
+grant entitlement — only the backend decides what the member has paid for.
+
 ## 4. Integration (L3)
 
 Against the dev backend, using `DEV_DEFAULTS` seed IDs:
@@ -163,11 +181,42 @@ One journal entry per test cycle at
 failures with root cause, coverage, screenshots, and open defects. Written as
 work happens, not retrofitted.
 
-## 10. Gaps this plan cannot yet close
+## 10. Scope note — what these tests do and do not cover
 
-- **Onboarding stages 3–5 are untestable** until the missing sign-up/payment/
-  trial/guest endpoints are resolved (development plan §3, §9.1). No test IDs are
-  assigned to them on purpose.
+The design board is **66 frames (57 native, 9 web)**, not the 35 its masthead
+claims. The test IDs above cover the **unblocked spine** — welcome, login, home,
+call, and the deep-link return. That is Phases 0–2.
+
+**The 9 web frames are out of scope for these tests.** Plan choice, Stripe
+checkout and confirmation are web pages; we test the *handoff back* (§3
+deep-link), not the checkout itself.
+
+Not yet assigned test IDs, deliberately, because they have no endpoints
+(development plan §3):
+
+| Surface | Screens |
+|---|---|
+| Native registration | 08–12 |
+| PIN / end session | 12, 34 |
+| Document vault | 14, 14A–14D, 31 |
+| Situations, activity, family, plan | 13B, 13C, 27B, 32, 33A–33D |
+| Nudges & notifications | 15, 22–26 |
+| Trial gate & conversion | V2, T5–T8 |
+| Guest gates | G1–G3 |
+| Grace / expired states | 35 |
+
+When those unblock, each needs the same treatment as §3: happy path, every error
+branch, and the degradation cases.
+
+## 11. Gaps this plan cannot yet close
+
+- **Store compliance is untestable by us.** Whether web-purchased subscriptions
+  plus a deep-link return passes App Store / Play review is a policy question, not
+  a test case (development plan §8). It needs an answer before Phase 3, because a
+  rejection invalidates the flow rather than delaying it.
+- **Family capacity is ambiguous in the reference** — stated four different ways
+  (development plan §9.6). No assertions can be written for the member stepper
+  until "up to 5" is confirmed as inclusive or exclusive of the primary account.
 - **Token expiry has no defined correct behaviour** — no refresh operation exists
   (development plan §8). Tests will assert whatever we decide; the decision comes
   first.

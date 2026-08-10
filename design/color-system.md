@@ -123,6 +123,11 @@ text at 3.13:1. Reproducing that ships a WCAG failure on the single most
 important CTA in the app. **Use Shield Navy `#0D1B2E` on gold (5.53:1).**
 Navy-on-gold also reads as more premium than white-on-gold.
 
+*Corroborated by the CodePen:* its stylesheet sets text on gold buttons to
+`#1c1304` — a near-black brown, i.e. dark-on-gold, not white-on-gold. The two
+references agree in substance; only the PDF's marketing preview disagrees. Use
+Shield Navy rather than `#1c1304` so the value stays inside the approved palette.
+
 **R2 — Mid Navy `#1A3A5C` is a border colour only.**
 The PDF lists it as "borders on dark, dividers, *secondary text on dark*". As
 text on Shield Navy it is 1.49:1 — effectively invisible. For secondary text on
