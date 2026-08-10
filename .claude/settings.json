@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/samsonphillip/attorney/ASI_2/kotlin",
+      "/Users/samsonphillip/attorney/ASI_2/swift",
+      "/Users/samsonphillip/attorney/ASI_2/lfr-desktop",
+      "/Users/samsonphillip/attorney/ASI_2/member-client"
+    ],
+    "allow": [
+      "Read(//Users/samsonphillip/attorney/ASI_2/**)",
+      "Edit(//Users/samsonphillip/attorney/ASI_2/kotlin/**)",
+      "Write(//Users/samsonphillip/attorney/ASI_2/kotlin/**)",
+      "Edit(//Users/samsonphillip/attorney/ASI_2/swift/**)",
+      "Write(//Users/samsonphillip/attorney/ASI_2/swift/**)",
+      "Bash(gh auth switch:*)",
+      "Bash(gh auth status)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Edit(//Users/samsonphillip/attorney/ASI_2/lfr-desktop/**)",
+      "Write(//Users/samsonphillip/attorney/ASI_2/lfr-desktop/**)",
+      "Edit(//Users/samsonphillip/attorney/ASI_2/member-client/**)",
+      "Write(//Users/samsonphillip/attorney/ASI_2/member-client/**)"
+    ]
+  }
+}
