@@ -135,32 +135,63 @@ dark, use **Steel Blue `#8DA8C4`** (7.03:1), which the PDF itself assigns to
 "muted text on dark backgrounds". Treat the "secondary text" part of the Mid
 Navy note as an error in the source document.
 
-**R3 — Gold is never body text on light backgrounds.**
-`#C4850A` on Off White is 2.85:1. Gold on light is reserved for large display
-type and decorative accents. For emphasis in light sections use Charcoal.
+**R3 — Gold is never text on light backgrounds, at any size.**
+`#C4850A` on Off White is 2.85:1 — below even the 3:1 large-text bar. Gold on
+light is a *fill* and a decorative accent only. This is why `accentText` is
+scheme-dependent: eyebrow labels are gold on dark and **Shield Navy on light**
+(15.73:1).
+
+**R4 — Verified Green is a fill, never text on dark.**
+`#1E7A48` on Shield Navy is **3.24:1** — it fails AA for text while still
+clearing the 3:1 bar for a non-text graphic. So green may be a badge fill (white
+on it is 5.34:1), a checkmark, or a status dot, but a sentence must never be
+rendered in it on a dark background.
+
+This one was found the hard way: the first Phase 0 smoke screen rendered its
+"passes" indicator as green text on navy — exactly the defect this system exists
+to prevent. It is now a green *dot* beside neutral text, and there is a
+regression test named for it.
 
 ---
 
-## 6. Semantic tokens
+## 6. Semantic tokens — both appearances
 
-Define these once per platform; reference tokens in UI code, never raw hex.
+**The app supports light and dark, and follows the OS setting.** Define these
+once per platform; reference tokens in UI code, never raw hex.
 
-| Token | Value | Notes |
-|---|---|---|
-| `bgPrimary` | `#0D1B2E` | App/hero background |
-| `bgSecondary` | `#122440` | Cards & sections on dark |
-| `bgPage` | `#F5F4F0` | Light content background |
-| `surface` | `#FFFFFF` | Cards on light |
-| `ctaBg` | `#C4850A` | Primary button fill |
-| `ctaBgPressed` | `#E8A020` | Pressed/hover fill |
-| `ctaFg` | `#0D1B2E` | **Text on CTA — navy, per R1** |
-| `textOnDark` | `#FFFFFF` | Primary text, dark bg |
-| `textOnDarkMuted` | `#8DA8C4` | Secondary text, dark bg (R2) |
-| `textOnLight` | `#2A2A2A` | Primary text, light bg |
-| `textOnLightMuted` | `#6B6A60` | Captions, fine print |
-| `borderOnDark` | `#1A3A5C` | Dividers on dark — **never text** |
-| `success` | `#1E7A48` | Verified/connected; white text OK |
-| `accentOnDark` | `#E8A020` | Gold text/icon on dark (7.81:1) |
+| Token | Dark | Light | Notes |
+|---|---|---|---|
+| `bgPrimary` | `#0D1B2E` | `#F5F4F0` | App/page background |
+| `bgSecondary` | `#122440` | `#FFFFFF` | Sections & cards |
+| `surface` | `#122440` | `#FFFFFF` | Raised surfaces |
+| `textPrimary` | `#FFFFFF` | `#2A2A2A` | Primary text |
+| `textMuted` | `#8DA8C4` | `#6B6A60` | Captions, fine print |
+| `accentText` | `#E8A020` | `#0D1B2E` | Eyebrows — **gold cannot be light-mode text (R3)** |
+| `border` | `#1A3A5C` | `#6B6A60` @ 25% | Dividers — **never text (R2)** |
+| `ctaBg` | `#C4850A` | `#C4850A` | Primary button fill — *identical* |
+| `ctaBgPressed` | `#E8A020` | `#E8A020` | Pressed fill — *identical* |
+| `ctaFg` | `#0D1B2E` | `#0D1B2E` | **Navy, per R1** — *identical* |
+| `successFill` | `#1E7A48` | `#1E7A48` | Fill only, per R4; white on it is 5.34:1 |
+
+**The gold CTA does not change between schemes.** That pairing is the brand
+anchor and is 5.53:1 either way, so the most important control on the screen
+looks and behaves identically in both appearances.
+
+**Light-mode contrast**, all clearing AA:
+
+| Pair | Ratio |
+|---|---|
+| Charcoal on Off White | 13.04 |
+| Charcoal on Pure White | 14.35 |
+| Stone Gray on Off White | 4.95 |
+| Shield Navy on Off White (eyebrow) | 15.73 |
+
+**Alpha variants of an approved colour are permitted** — they are still that
+colour. The light hairline is Stone Gray at 25% because the palette has no
+opaque light border and Flat Gray is forbidden. Note this means `border` and
+`textMuted` share a base hue in light mode; that is legitimate reuse, not a
+violation, so the R2 test asserts specifically that *Mid Navy* is never text
+rather than comparing the two tokens.
 
 **Deliberately unresolved: `danger`.** The call flow needs an error state and a
 hang-up affordance, and the PDF supplies no error colour while forbidding
