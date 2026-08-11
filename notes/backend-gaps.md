@@ -6,7 +6,7 @@ answered — this is the list we take to the backend team.
 
 **Status key:** 🔴 blocking now · 🟠 blocks a later phase · 🟡 question, not a blocker
 
-Last updated: 2026-08-11
+Last updated: 2026-08-11 (deep links)
 
 ---
 
@@ -73,6 +73,21 @@ None of these have endpoints:
 | Guest sessions & gates | G1–G3 |
 
 - **Blocks:** Phase 3 entirely. Cannot be scoped until answered.
+
+### 6a. Domain association files for the deep link (web task)
+
+The apps now handle the web→app handoff, but the links cannot open the app
+*silently* without domain verification files served from both
+`attorney-shield.com` and `www.attorney-shield.com`:
+
+- **Android:** `/.well-known/assetlinks.json` carrying the app's signing
+  certificate SHA-256 fingerprint for `com.app.attorney.shield`.
+- **iOS:** `/.well-known/apple-app-site-association` for the app's Team ID +
+  `com.app.attorney.shield`, plus an Associated Domains entitlement on our side.
+
+Until both exist, Android shows a disambiguation dialog and iOS Universal Links
+do not fire at all. Interim: a private scheme (`attorneyshield://return`) works
+today and also backs the reference's "Open app manually" fallback.
 
 ### 6. Deep-link contract for the web→app handoff
 Screens 07 and T4 hand back to the app with "email pre-filled". The reference
