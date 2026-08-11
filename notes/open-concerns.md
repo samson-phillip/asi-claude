@@ -5,7 +5,7 @@ resolve from inside the code. Separate from
 [backend-gaps.md](backend-gaps.md), which tracks what we need *from other
 people*.
 
-Last updated: 2026-08-11, end of Phase 2.
+Last updated: 2026-08-11, after Phase 4 hardening.
 
 ---
 
@@ -60,6 +60,10 @@ whoever set the deadline knows that.
 
 ## 5. Decisions I made that are reversible but worth a look
 
+- **Android is now locked to portrait**, matching iOS and the reference. This is a
+  deliberate accessibility trade-off: someone who mounts their phone in landscape
+  cannot. It also removes rotation as a way to destroy a call mid-encounter, which
+  is why I chose it — but it is a product call, not a technical one.
 - **Home omits the reference's saved-three-situations row, readiness card, and
   the Glovebox/Activity/Profile tab bar.** No endpoints, and I judged navigation
   to nowhere worse than leaving it out. Easy to add as static UI if you'd rather
@@ -91,8 +95,11 @@ whoever set the deadline knows that.
   code's emoji stands in.
 - Android's system nav bar renders light under `enableEdgeToEdge()`, ignoring the
   theme. Cosmetic.
-- **Phase 4 hardening has not started**: dynamic type, rotation, offline and
-  airplane mode, token-expiry behaviour, screen-reader pass.
+- **iOS has no dynamic-type test gate.** Android does. Asserting SwiftUI layout
+  needs ViewInspector or an XCUITest target, so the iOS check was visual only.
+- **Phase 4 is partly done.** Rotation/state loss, dynamic type, offline messaging
+  and token-expiry handling are in. Still open: screen-reader pass, airplane-mode
+  end to end, performance.
 
 ## 7. Two process notes
 
