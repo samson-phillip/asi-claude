@@ -116,3 +116,35 @@ None.
    the live call state, and wiring mute through to the publisher. Both want a real
    call to be worth testing.
 4. Still owed: a visual pass over Home and Call once a login works.
+
+---
+
+## Addendum — Vonage video attached to the Call screen
+
+Completes Phase 2. `VonageSession` now hands out the publisher and subscriber
+surfaces as plain platform views (`android.view.View` / `UIView`) rather than SDK
+types, so the UI layer never imports the SDK — the video surface is the only part
+of a call that has to be an SDK object, and confining it keeps the rest
+swappable.
+
+**Mute now reaches the publisher**, not just the button. A mute control that
+leaves the microphone transmitting would be a serious defect on a call whose
+whole purpose is a legal encounter, and it was UI-only until now.
+
+**Teardown is the guarantee that matters**, so the session lives in a
+`DisposableEffect` (Android) / `onDisappear` + `onChange` (iOS): leaving the
+screen releases the camera, mic and socket even if the member backed out
+mid-connect.
+
+Both platforms re-parent the SDK view rather than rebuilding it. A naive
+teardown-and-recreate on every update would rebuild the video surface on
+unrelated state changes — visible as a flicker mid-call.
+
+**Unverified, and worth being explicit:** a real video call has never connected,
+because `member-call` returns 409 with no attorney on dev. What *is* proven is
+that the SDK loads, reaches Vonage, and reports through the phase machine (the
+Phase 0 spike), and that the credential and lifecycle plumbing compiles and
+tears down cleanly. The step from "connecting" to a live picture is the one thing
+still taken on faith.
+
+Android 124 unit + 9 instrumented, iOS 124 — all green after the change.
