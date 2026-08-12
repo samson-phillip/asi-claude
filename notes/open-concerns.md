@@ -5,7 +5,7 @@ resolve from inside the code. Separate from
 [backend-gaps.md](backend-gaps.md), which tracks what we need *from other
 people*.
 
-Last updated: 2026-08-11, after Phase 4 hardening.
+Last updated: 2026-08-12, Phase 4 complete.
 
 ---
 
@@ -95,13 +95,21 @@ whoever set the deadline knows that.
   code's emoji stands in.
 - Android's system nav bar renders light under `enableEdgeToEdge()`, ignoring the
   theme. Cosmetic.
-- **iOS has no dynamic-type test gate.** Android does. Asserting SwiftUI layout
-  needs ViewInspector or an XCUITest target, so the iOS check was visual only.
-- **Phase 4 is partly done.** Rotation/state loss, dynamic type, offline messaging
-  and token-expiry handling are in. Still open: screen-reader pass, airplane-mode
-  end to end, performance.
+- **Release signing uses the debug key.** Temporary, so a minified build could be
+  smoke-tested at all. **A real keystore is needed before shipping**, and whoever
+  holds it should also confirm `versionCode` against the live store listing — I
+  set 127 from a dev device showing 126, which is a guess.
+- **Serialization and the Vonage call path are unverified under R8.** The minified
+  build launches and navigates cleanly, but reaching the decode and call paths
+  needs a login the gateway URL still blocks.
 
-## 7. Two process notes
+## 7. The dev machine
+
+**Disk is at 97% (13 GiB free).** The Android emulator died twice mid-test-run
+during Phase 4 and this is very likely why. Not mine to clean up, but it will
+keep costing time.
+
+## 8. Two process notes
 
 - **`gh`'s active account silently drifted to `samson-mm` mid-session** and a push
   failed. Worth knowing it can flip while you work; the startup checklist catches
