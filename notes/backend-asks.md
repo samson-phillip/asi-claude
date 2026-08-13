@@ -1,7 +1,7 @@
 # Attorney Shield 2.0 — Backend asks from the native apps
 
 **From:** mobile (Android + iOS)
-**Date:** 2026-08-13
+**Date:** 2026-08-13 (updated after the seeding landed)
 **Environment:** `https://gateway-dev.attorneyshield.io/query` · `https://comms-dev.attorneyshield.io`
 
 Every item below is something **you can act on**. Our own to-dos, design
@@ -17,9 +17,9 @@ it is corrected and marked.
 
 | # | Ask | Severity | Unblocks |
 |---|---|---|---|
-| A1 | `countries` returns `[]` while the rows resolve by id | HIGH | Country/state pickers everywhere |
-| A2 | Incident types not seeded (+ an English default language) | **BLOCKING** | The home screen and the whole call flow |
-| A3 | Document types + fields not seeded | HIGH | The Glovebox — 5 screens |
+| A1 | `countries` returns `[]` | ~~HIGH~~ | ✅ **FIXED — thank you** |
+| A2 | Incident types + an English default language | ~~BLOCKING~~ | ✅ **FIXED — Home now renders real tiles** |
+| A3 | Document types + fields | ~~HIGH~~ | ✅ **FIXED — the Glovebox is unblocked** |
 | A4 | No case for the test member | MEDIUM | Attorney pre-selection, real jurisdiction |
 | B1 | No phone send/verify operations | HIGH | Registration screens 08, 09 |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
@@ -54,7 +54,39 @@ a round trip to Vonage.
 
 # A. Environment and seeding
 
-### A1 — `countries` returns empty while the same rows resolve by id · HIGH
+## ✅ A1, A2 and A3 are fixed — verified 2026-08-13
+
+Confirmed against dev as the test member, and the apps now render it:
+
+| Check | Result |
+|---|---|
+| `countries` | **United States** ✅ |
+| `adminIncidentTypeList(activeOnly: true, countryISO2: "US")` | **6 types** — Test Call, Traffic Stop, Domestic, Auto Accident, Pedestrian Stop, Other ✅ |
+| `adminLanguageList` | **`en-US` with `isDefault: true`**, plus `es-ES` and `ar-SA` ✅ |
+| Translations | English **and Spanish** on every type ✅ |
+| `iconFilePath` | Real CloudFront URLs on all six ✅ |
+| `adminDocumentTypeList` | **Driver's Information, Health Information, Gun Information, Citizenship Info** — all four Glovebox sections ✅ |
+| `adminDocumentFieldList` | **20 fields** ✅ |
+
+**Home now shows six real incident tiles with their English names for the first
+time.** That was the blocking item; it is gone.
+
+Two small notes, neither urgent:
+
+1. **The `code` values are human strings** — `"Traffic Stop"`, not
+   `traffic_stop`. We had assumed snake_case, so our icon lookup matched nothing
+   and every tile fell back to a generic shield until we normalised it. Only
+   flagging in case another client made the same assumption.
+2. **`adminDocumentTypeList` also contains what look like test rows** —
+   `"contract 2"` and `"Extra books"`, alongside the generic Contract / Form /
+   Guide / Policy / Incident Report. We will render only the four Glovebox
+   sections, but you may want to tidy those out of dev.
+
+The rest of this section — A4 — is still open.
+
+---
+
+### ~~A1 — `countries` returns empty while the same rows resolve by id~~ · FIXED
 
 **Correction to what we told you earlier.** We previously said no countries were
 configured. That was wrong:
@@ -73,7 +105,7 @@ offering a picker — so it is not blocking us — but the list query looks brok
 scoped in a way nobody intended, and we would rather tell you than quietly route
 around it.
 
-### A2 — Incident types are not seeded · BLOCKING
+### ~~A2 — Incident types are not seeded~~ · FIXED
 
 ```
 adminIncidentTypeList(activeOnly: false)                    → []
@@ -95,7 +127,7 @@ language entry marked `isDefault: true`**. Without the language, our label
 resolution (English → org default → first available → humanized code) falls
 through to Arabic.
 
-### A3 — Document types and fields are not seeded · HIGH
+### ~~A3 — Document types and fields are not seeded~~ · FIXED
 
 ```
 adminDocumentTypeList → []
@@ -306,9 +338,9 @@ keystore exists — that part is on us.
 
 | You give us | We ship |
 |---|---|
-| A2 — incident types + an English language | A working home screen and a call with a real incident type |
-| A3 — document types + fields | The Glovebox: screens 14, 14A–14D |
-| A1, A4 — countries list, a test case | Real jurisdiction and attorney pre-selection |
+| ~~A2 — incident types + an English language~~ | ✅ done — Home renders real tiles |
+| ~~A3 — document types + fields~~ | Next up for us: the Glovebox, screens 14, 14A–14D |
+| A4 — a case for the test member | Real jurisdiction and attorney pre-selection |
 | B1 — phone send/verify | Registration screens 08 and 09 |
 | B2 — a pronouns field | The last field of screen 10 |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
@@ -323,9 +355,12 @@ keystore exists — that part is on us.
 ## Where we are
 
 Built and verified against dev: the welcome carousel, sign-in by password **and
-one-time code**, the profile checklist, personal details, address, security PIN,
-set-a-password, emergency contacts, the home screen, the call flow up to
-"connecting", and the deep-link handler.
+one-time code**, the profile checklist and its readiness card on Home, personal
+details, address, security PIN, set-a-password, emergency contacts, **a home
+screen with six real incident tiles**, the call flow up to "connecting", and the
+deep-link handler.
+
+With A3 in place, the Glovebox is what we build next.
 
 **One thing we have never been able to prove:** a video call actually going live.
 `member-call` returns `409 no attorney is available` on dev. We are arranging an

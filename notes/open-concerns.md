@@ -5,7 +5,7 @@ resolve from inside the code. Separate from
 [backend-gaps.md](backend-gaps.md), which tracks what we need *from other
 people*.
 
-Last updated: 2026-08-13, finish-setup wizard complete.
+Last updated: 2026-08-13, after the dev seeding landed.
 
 ---
 
@@ -64,10 +64,10 @@ whoever set the deadline knows that.
   deliberate accessibility trade-off: someone who mounts their phone in landscape
   cannot. It also removes rotation as a way to destroy a call mid-encounter, which
   is why I chose it — but it is a product call, not a technical one.
-- **Home omits the reference's saved-three-situations row, readiness card, and
-  the Glovebox/Activity/Profile tab bar.** No endpoints, and I judged navigation
-  to nowhere worse than leaving it out. Easy to add as static UI if you'd rather
-  demo the full shape.
+- **Home omits the reference's saved-three-situations row and the
+  Glovebox/Activity/Profile tab bar.** No endpoints for the former; the tab bar
+  points at screens that do not exist yet. I judged navigation to nowhere worse
+  than leaving it out. The readiness card **is** now built.
 - **Sign-in codes are 4 digits, not the 6 the design shows.** The design
   reference's six-cell entry (screen 09) is registration *phone* verification;
   the live sign-in code is 4 digits and the deployed web client submits on the
@@ -91,8 +91,13 @@ whoever set the deadline knows that.
   only when the list resolves.
 - **No age gate.** Date of birth is validated as a real past date, but nothing
   checks 18+. If membership has a minimum age, someone needs to say so.
-- **Setup completeness is inferred** from DOB + address + PIN, because there is no
-  "onboarding complete" flag. If one appears we should use it instead.
+- **Setup completeness is inferred** from DOB + address + PIN + password +
+  contacts, because there is no "onboarding complete" flag. If one appears we
+  should use it instead. It drives both the checklist and Home's percentage, from
+  one shared loader so the two cannot disagree.
+- **The readiness card's dismissal is not persisted** — it hides for the session
+  only, so an incomplete profile is raised again next launch. The reference shows
+  a cross; it does not say whether it should stick.
 - **Errors and hang-up are rendered in gold, not red.** The palette forbids the
   red it names and supplies no error colour. This is a real visual compromise on
   the most safety-critical control in the app, and it needs a Blue Sky decision.
@@ -114,8 +119,12 @@ whoever set the deadline knows that.
   proved text assertions miss layout faults.
 - **No launcher icon or brand shield asset.** The lockup draws a placeholder
   shield in gold.
-- `iconFilePath` on incident types is ignored — no image loader wired, so the
-  code's emoji stands in.
+- **`iconFilePath` now carries real CloudFront URLs and we still draw emoji.**
+  Before seeding this was theoretical; now it is a visible gap against the design
+  on the app's main screen. Android needs an image-loading dependency (Coil); iOS
+  has `AsyncImage` built in. Mine to do.
+- **The dev machine is at 6.7 GiB free** and the emulator died twice during the
+  readiness-card work, costing two test runs. Worse than when I last raised it.
 - Android's system nav bar renders light under `enableEdgeToEdge()`, ignoring the
   theme. Cosmetic.
 - **Release signing uses the debug key.** Temporary, so a minified build could be
@@ -128,9 +137,12 @@ whoever set the deadline knows that.
 
 ## 7. The dev machine
 
-**Disk is at 97% (13 GiB free).** The Android emulator died twice mid-test-run
-during Phase 4 and this is very likely why. Not mine to clean up, but it will
-keep costing time.
+**Disk is down to 6.7 GiB free**, from 13 GiB when I first raised this. The
+Android emulator has now died mid-run on three separate tasks, and each death
+costs a full test cycle. I cleared 9.6 GiB earlier by removing DerivedData and
+build output; that has been re-consumed. The remaining large items I deliberately
+did not touch are iOS DeviceSupport (~12G) and `~/.gradle/caches` (~13G) — both
+are safe to delete but slow to rebuild, so that is your call.
 
 ## 8. Two process notes
 
