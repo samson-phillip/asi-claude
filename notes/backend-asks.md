@@ -59,23 +59,23 @@ emergency.
 | A1 | `countries` returns `[]` | ~~HIGH~~ | ✅ **FIXED — verified today** |
 | A2 | Incident types + an English default language | ~~BLOCKING~~ | ✅ **FIXED — Home renders real tiles** |
 | A3 | Document types + fields | ~~HIGH~~ | ✅ **FIXED — the Glovebox is built** |
-| A4 | Still no *real* case for the test member | MEDIUM | Attorney pre-selection, real jurisdiction |
-| A5 | `deleteUserDocument` is `forbidden` for a member's own file | HIGH | Removing a document from the Glovebox |
+| A4 | Attorney pre-selection | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — `commsAttorneysForMember`, jurisdiction-wide** |
+| A5 | `deleteUserDocument` forbidden | ~~HIGH~~ | ✅ **SHIPPED and BUILT — the ✕ is on every tile** |
 | A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
-| A7 | `addSubaccount` accepts a `seatPriceID` that does not exist | **DATA** | Correct billing on family seats |
-| A8 | `attorneyAssignments { attorney { … } }` times out | MEDIUM | Attorney name on the Activity timeline |
+| A7 | `addSubaccount` accepted a bogus `seatPriceID` | ~~DATA~~ | ✅ **SHIPPED — validated on the way in** |
+| A8 | Attorney behind a call | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — `attorneyDisplayName`** |
 | B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED — `requestPhoneVerification` / `verifyPhone`** |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
 | B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
-| B5 | No way to convert a trial and charge | HIGH | 5 native screens (V2, T5–T8) — spec below |
+| B5 | Converting a trial | ~~HIGH~~ | ✅ **SHIPPED — `convertMyTrial`. Screens not built yet** |
 | B5a | No guest model | HIGH | 3 screens (G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
-| B7 | No way to change a card in-app | MEDIUM | Screen 33D, and the Update row on 33A |
+| B7 | Changing a card in-app | ~~MEDIUM~~ | ✅ **ANSWERED — Stripe SDK; 33D becomes "replace card"** |
 | B8 | Notification categories, frequency and `kind` | MEDIUM | Most of screen 26 |
 | C1–C7 | Seven answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
 | C8 | An onboarding-complete flag | ~~MEDIUM~~ | ✅ **SHIPPED — `completeMyOnboarding`, `onboardingCompletedAt`** |
-| D1 | `member-call` takes no authentication | **SECURITY** | — |
+| D1 | `member-call` took no authentication | ~~SECURITY~~ | ✅ **FIXED both sides — dev now enforces** |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
 
 ---
