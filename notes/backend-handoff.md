@@ -3,9 +3,10 @@
 **From:** mobile (Android + iOS)
 **Date:** 2026-08-12
 
-The native apps now sign in against `gateway-dev` and reach the home screen. Most
-of what we need already exists in the schema — this is the short list of what
-does not, plus a few shapes we would rather confirm than guess.
+The native apps now sign in against `gateway-dev` — by password **and by
+one-time code** — and reach the home screen. Most of what we need already exists
+in the schema; this is the short list of what does not, plus a few shapes we
+would rather confirm than guess.
 
 ---
 
@@ -82,24 +83,32 @@ We would rather ask than assume.
 
 Small answers, but each one is currently a guess:
 
-1. **`OtpChannel`** — what are the enum values? The design reference describes a
-   "one-time text code", so presumably SMS, but we would rather not assume.
-2. **`verifyLoginOtp(email, code, countryISO2)`** — is `countryISO2` required,
-   and should it be the device region or the account's country?
-3. **Does `verifyLoginOtp` return the same shape as `login`** — `accessToken`,
-   `refreshToken`, `userID`, `roles`?
-4. **`refreshToken`** — what is the access-token lifetime, and does refreshing
+1. **`countryISO2` on `verifyLoginOtp`** — we send `null`, because it is
+   optional and that is what the web client sends. But what is it *for*? If it
+   affects routing or jurisdiction we would rather send something real than a
+   null that quietly degrades.
+2. **Sign-in codes are 4 digits** — confirmed against the live gateway, and we
+   have built for 4. Flagging only because the design reference specifies a
+   six-digit entry; we assume the reference is describing registration phone
+   verification, which is a different code.
+3. **`refreshToken`** — what is the access-token lifetime, and does refreshing
    rotate the refresh token? This matters more for us than for web: a browser tab
    is short-lived, but a native app sits backgrounded for days, and this is an app
    people open during a police encounter.
-5. **`setMemberPin(userId, pin)` / `verifyMemberPin`** — the design reference says
+4. **`setMemberPin(userId, pin)` / `verifyMemberPin`** — the design reference says
    the PIN's only job is ending a live session securely; it does not unlock the
    app or protect recordings. Is `verifyMemberPin` the intended server-side gate
    for ending a call?
-6. **Casing is inconsistent and we follow whatever each operation uses** — the
+5. **Casing is inconsistent and we follow whatever each operation uses** — the
    gateway mixes `userID` (`login`, `casesByUser`) with `userId` (`setMemberPin`,
    `verifyMemberPin`), and comms REST uses `memberUserId`. Worth knowing before
    anyone adds a field.
+6. **Is the one-device-at-a-time rule permanent?** `LoginPayload` returns
+   `otherSessionsRevoked` and `mySessionStatus` reports `another_device`, so
+   signing in on the web ends the app's session and vice versa. We can live with
+   it, but it is worth confirming it is deliberate for a phone people open
+   during a police encounter — if someone signs in on a laptop, the app in their
+   pocket is signed out.
 
 ---
 
@@ -153,7 +162,7 @@ Flagging rather than assuming it is known.
 | You give us | We ship |
 |---|---|
 | Countries, incident types, a language, and a case on dev | Home and the call flow verified against real data |
-| Answers to §3 | OTP sign-in, token refresh, and registration screens 08–12 |
+| Answers to §3 | Token refresh, and registration screens 08–12 |
 | Situation-preference endpoints (§2.1) | The home screen's saved three, as designed |
 | A decision on the guest model (§2.2) | Trial and guest flows scoped |
 | The deep-link contract (§4) | A one-line change, then verified |

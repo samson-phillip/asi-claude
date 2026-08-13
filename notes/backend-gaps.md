@@ -69,10 +69,24 @@ and that is what it is for. Not on the backend list.
 
 ### 3. Shape confirmations — HIGH
 
-`OtpChannel` enum values; whether `countryISO2` is required and what it should
-be; whether `verifyLoginOtp` returns the same shape as `login`; access-token
-lifetime and whether refresh rotates; whether `verifyMemberPin` is the intended
-server-side gate for ending a call.
+**Three of these are now answered** (introspection + the deployed JS bundle,
+2026-08-13):
+
+- `OtpChannel` = `EMAIL` | `SMS`
+- `verifyLoginOtp` returns `LoginPayload` — the same shape as `login`
+- `countryISO2` is **optional**; the web client sends `null`
+
+Still open: what `countryISO2` is actually for; access-token lifetime and
+whether refresh rotates; whether `verifyMemberPin` is the intended server-side
+gate for ending a call; the casing inconsistency.
+
+Also learned: the gateway **does not enumerate accounts** — an unknown address
+returns `sent: true` with the submitted address masked back. Good behaviour, but
+it means the design's guest-mode branch cannot detect an unrecognised email at
+sign-in.
+
+And: **one device may be signed in at a time** (`otherSessionsRevoked`,
+`mySessionStatus` → `another_device`).
 
 ### 4. Genuinely absent from the schema — HIGH
 

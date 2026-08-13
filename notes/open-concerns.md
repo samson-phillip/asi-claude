@@ -68,8 +68,18 @@ whoever set the deadline knows that.
   the Glovebox/Activity/Profile tab bar.** No endpoints, and I judged navigation
   to nowhere worse than leaving it out. Easy to add as static UI if you'd rather
   demo the full shape.
-- **Login is email + password only.** The reference offers a one-time text code;
-  no OTP endpoint exists.
+- **Sign-in codes are 4 digits, not the 6 the design shows.** The design
+  reference's six-cell entry (screen 09) is registration *phone* verification;
+  the live sign-in code is 4 digits and the deployed web client submits on the
+  fourth. I followed the live system. One constant to change if that is wrong.
+- **Being signed out elsewhere gives no explanation.** Only one device may be
+  signed in at a time, so signing in on the web kills the app's session — the
+  member just gets "Your session has expired". The reference says "Your account
+  was opened on another device", and `mySessionStatus { status reason }` returns
+  `another_device`, so the information is available. Contained follow-up, but a
+  bad moment to be confused.
+- **SMS delivery is built but never exercised.** No dev account has a verified
+  phone, so `maskedPhone` is always null and the channel switch never renders.
 - **Errors and hang-up are rendered in gold, not red.** The palette forbids the
   red it names and supplies no error colour. This is a real visual compromise on
   the most safety-critical control in the app, and it needs a Blue Sky decision.
