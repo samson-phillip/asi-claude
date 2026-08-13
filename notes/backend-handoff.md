@@ -1,161 +1,162 @@
-# Attorney Shield 2.0 — Backend Requirements for the Native Apps
+# Attorney Shield 2.0 — What the Native Apps Need from the Backend
 
 **From:** mobile (Android + iOS)
-**Date:** 2026-08-12 (revised — see the correction below)
-**Status:** the apps now sign in against `gateway-dev` and reach Home with live
-data.
+**Date:** 2026-08-12
+
+The native apps now sign in against `gateway-dev` and reach the home screen. Most
+of what we need already exists in the schema — this is the short list of what
+does not, plus a few shapes we would rather confirm than guess.
 
 ---
 
-## Correction to the earlier draft
+## 1. Dev data is not seeded — this is what blocks us
 
-An earlier version of this document claimed that registration, the document
-vault, family sub-accounts, notifications, OTP sign-in and token refresh had **no
-endpoints**. That was wrong, and the mistake was ours.
+Signed in as the test member against `https://gateway-dev.attorneyshield.io/query`:
 
-We had inferred the API surface from the operations `member-client` happens to
-use. The gateway has **238 queries and 297 mutations** with introspection
-enabled, and most of what we thought was missing is already there. Please ignore
-the earlier list.
-
-What follows is based on the live schema at
-`https://gateway-dev.attorneyshield.io/query`.
-
----
-
-## 1. Resolved — no longer blocking
-
-| Was | Now |
+| Query | Result |
 |---|---|
-| Gateway URL unknown | `https://gateway-dev.attorneyshield.io/query`, found in `lfr-desktop/.env.example` |
-| No dev member account | Supplied; sign-in verified end to end on Android |
-| No token refresh | `refreshToken(input: RefreshTokenInput)` exists |
-| No OTP sign-in | `requestLoginOtp(email, channel)` / `verifyLoginOtp(email, code, countryISO2)` exist |
-| No registration endpoints | `register`, `createUserProfile`, `createUserAddress`, `setMemberPin`, `verifyMemberPin`, `memberPinStatus` exist |
-| No document vault | `createUserDocument`, `deleteUserDocument`, `adminDocumentTypeList`, plus a request/finalize upload pattern |
-| No family/plan | `addSubaccount`, `changeMembershipSeats`, `changeMembershipPlan`, `attachPaymentMethod`, `createSetupIntent`, billing history |
-| No notifications | `notificationList`, `markNotificationRead`, `markAllNotificationsRead`, `clearNotifications`, `registerWebPush` |
-| No emergency contacts | Full CRUD (`emergencyContactList`, `createEmergencyContact`, …) |
+| `countries { iso2 }` | `[]` |
+| `adminIncidentTypeList(activeOnly: false)` | `[]` |
+| `adminIncidentTypeList(activeOnly: true, countryISO2: "US" \| "GB" \| "ZW")` | `[]` |
+| `casesByUser(userID: <test member>)` | `[]` |
+| `adminLanguageList` | 1 entry — `ar-SA`, `isDefault: false` |
 
-**We can now build most of Phase 3 without waiting on you.**
+No errors on any of them — the data simply is not there. Because
+`adminIncidentTypeList` is filtered by `countryISO2` and **no countries are
+configured**, it returns empty for every value we tried.
+
+The home screen therefore shows "No incident types are configured yet.", which is
+correct behaviour on our side but means we cannot exercise the incident tiles,
+the attorney chip row, or place a call with a real incident type.
+
+We sent the same query the deployed member client sends —
+`adminIncidentTypeList(activeOnly: true, countryISO2: $country)`, lifted from its
+JS bundle — so this is not a difference in how we are asking.
+
+**What we need on dev:**
+
+1. **Countries configured**, at minimum `US`.
+2. **Incident types seeded** for that country, with translations. The design
+   reference uses: Traffic Stop, Auto Accident, Pedestrian Stop, Domestic, Test
+   Call, Other.
+3. **An English language entry**, ideally `isDefault: true`. Today the only
+   language is `ar-SA` and it is not marked default, so even with incident types
+   present our label resolution (English → org default → first → humanized code)
+   would fall through to Arabic or a humanized code.
+4. **A case for the test member** (`munyira851@gmail.com`), so jurisdiction and
+   partner resolve from real data instead of falling back to `DEV_DEFAULTS`. The
+   member's organization resolves correctly already
+   (`6c53e00d-8682-11f1-a446-06cf81ac74a7`), but with no case we cannot exercise
+   attorney pre-selection at all.
+
+If it is easier to point us at an environment that already has this data, that
+works too — we only need somewhere to develop against.
 
 ---
 
-## 2. What we still need
+## 2. Missing from the schema entirely
 
-### 2.1 Dev data is empty — BLOCKING our Home screen
+Two areas returned **no matching operations**, so we cannot build them:
 
-Signed in as the test member, against `gateway-dev`:
+### 2.1 Situation preferences — screens 13B, 13C, 27B
 
-```
-adminIncidentTypeList(activeOnly: false)  ->  []      (no errors)
-casesByUser(userID: <test member>)        ->  []
-adminLanguageList                          ->  1 language
-```
+The member's saved "three most common situations". Nothing matching `situation`,
+`preference` or `favourite` in 238 queries or 297 mutations.
 
-So Home correctly shows "No incident types are configured yet." — the app is
-behaving properly, there is simply nothing to show.
+Home currently shows the full incident list, because there is nowhere to store a
+choice of three. Roughly: a read and a write, capped at three incident-type IDs
+per member.
 
-**We need:** incident types seeded on dev (the reference uses Traffic Stop, Auto
-Accident, Pedestrian Stop, Domestic, Test Call, Other), with translations, and
-ideally a case for the test member so jurisdiction and partner resolve rather
-than falling back to `DEV_DEFAULTS`.
+### 2.2 Trial and guest — screens V1–V2, T1–T8, G1–G3
 
-Without this we cannot exercise the tile grid, the attorney chip row, or place a
-call with a real incident type.
+Nothing matching `trial` or `guest`.
 
-### 2.2 An attorney online, to prove a video call — HIGH
+The design has a 7-day limited trial with an in-app conversion gate, and a guest
+mode entered from an unrecognised email at sign-in. **The question that decides
+the whole design: is a guest a real account with a role, or purely local state?**
+We would rather ask than assume.
 
-`member-call` still returns `409 no attorney is available`, so **no real video
-call has ever connected.** Everything up to that point is proven: the Vonage SDK
-loads, reaches Vonage, and reports through our phase machine on both platforms.
+---
 
-We can see from `lfr-desktop` that going online is
-`commsUpsertAttorneyQueueMember(queueId, attorneyId, role, weight)`, and that
-there is a wider presence model (`attorneyPresence`, `attorneyActiveSession`,
-`attorneyDevice`).
+## 3. Shapes we would rather confirm than guess
 
-**We need one of:**
-- an attorney account we can use, plus confirmation that upserting a queue member
-  is sufficient for the router to consider them available; or
-- someone to run `lfr-desktop` for a scheduled window.
+Small answers, but each one is currently a guess:
 
-We have not put an attorney into the queue ourselves — it is a shared
-environment and that would make someone appear available for real calls.
+1. **`OtpChannel`** — what are the enum values? The design reference describes a
+   "one-time text code", so presumably SMS, but we would rather not assume.
+2. **`verifyLoginOtp(email, code, countryISO2)`** — is `countryISO2` required,
+   and should it be the device region or the account's country?
+3. **Does `verifyLoginOtp` return the same shape as `login`** — `accessToken`,
+   `refreshToken`, `userID`, `roles`?
+4. **`refreshToken`** — what is the access-token lifetime, and does refreshing
+   rotate the refresh token? This matters more for us than for web: a browser tab
+   is short-lived, but a native app sits backgrounded for days, and this is an app
+   people open during a police encounter.
+5. **`setMemberPin(userId, pin)` / `verifyMemberPin`** — the design reference says
+   the PIN's only job is ending a live session securely; it does not unlock the
+   app or protect recordings. Is `verifyMemberPin` the intended server-side gate
+   for ending a call?
+6. **Casing is inconsistent and we follow whatever each operation uses** — the
+   gateway mixes `userID` (`login`, `casesByUser`) with `userId` (`setMemberPin`,
+   `verifyMemberPin`), and comms REST uses `memberUserId`. Worth knowing before
+   anyone adds a field.
 
-### 2.3 Confirmations on shapes we are about to build against
+---
 
-Small, but each one is a guess otherwise:
+## 4. Deep-link contract for the web→app handoff
 
-1. **`OtpChannel`** — what are the enum values? (`SMS`, `EMAIL`, …) The design
-   reference describes a "one-time text code", so presumably SMS.
-2. **`verifyLoginOtp(..., countryISO2)`** — is that required, and should it be
-   the device region or the account's country?
-3. **Does `verifyLoginOtp` return the same shape as `login`** (accessToken,
-   refreshToken, userID, roles)?
-4. **`refreshToken`** — what is the access-token lifetime, and does refresh
-   rotate the refresh token?
-5. **`setMemberPin(userId, pin)`** — the reference says the PIN's only job is
-   ending a live session securely; it does not unlock the app. Is
-   `verifyMemberPin` the intended gate for ending a call server-side?
-6. **Casing is inconsistent and we will follow whatever each operation uses:**
-   the gateway mixes `userID` (login, casesByUser) with `userId`
-   (`setMemberPin`, `verifyMemberPin`), and comms REST uses `memberUserId`.
-   Worth knowing before anyone adds a field.
+Screens 07 and T4 hand the member back to the app "with email pre-filled", but
+the design reference never records the actual path or parameter names.
 
-### 2.4 Genuinely absent from the schema
+**Currently implemented:** we accept `/app/return`, `/return-to-app` and `/app` on
+`attorney-shield.com` and `www.attorney-shield.com`, reading an `email` query
+parameter. All of it is confined to one file, so a confirmed contract is a
+one-line change.
 
-Two areas returned **no matching operations at all**:
-
-- **Situation preferences** (screens 13B, 13C, 27B) — the member's saved "three
-  most common situations". Nothing matching `situation`, `preference` or
-  `favourite`. Home currently shows the full incident list because there is
-  nowhere to store a choice.
-- **Trial and guest** (V1–V2, T1–T8, G1–G3) — nothing matching `trial` or
-  `guest`. We need to know whether a guest is a real account with a role or a
-  purely local state; that single answer decides the whole design.
-
-### 2.5 Deep-link contract — HIGH
-
-Screens 07 and T4 hand back to the app "with email pre-filled"; the reference
-never records the path. We currently accept `/app/return`, `/return-to-app` and
-`/app` on `attorney-shield.com` and `www.attorney-shield.com` with an `email`
-query parameter, all confined to one file.
+**We need:** the real path and parameter names.
 
 **Please do not design the link to carry a credential.** We treat it as untrusted
-input — the email is a text-field prefill only, and there is a test asserting a
-link carrying `accessToken`/`userID`/`roles` yields nothing but the email. If the
-app needs to know what someone bought, we would rather ask after a real sign-in.
+input — anyone can send a link. The email is a text-field prefill only, and we
+have a test asserting that a link carrying `accessToken`, `userID` or `roles`
+yields nothing but the email. If the app needs to know what someone has bought,
+we would rather ask the backend after a real sign-in.
 
-### 2.6 Domain verification files — HIGH (web task)
+### Related, and a web task rather than a backend one
 
-For the deep link to open the app silently, both hosts need
-`/.well-known/assetlinks.json` (Android, our signing SHA-256) and
-`/.well-known/apple-app-site-association` (iOS, our Team ID), for
-`com.app.attorney.shield`. We will send both once the release keystore exists.
+For the link to open the app *silently*, both hosts need:
+
+- **Android:** `/.well-known/assetlinks.json` with our signing-certificate
+  SHA-256 fingerprint for `com.app.attorney.shield`
+- **iOS:** `/.well-known/apple-app-site-association` for our Team ID +
+  `com.app.attorney.shield`
+
+Until then Android shows a "which app?" dialog and iOS universal links do not fire
+at all. We will send the fingerprint and Team ID once our release keystore exists.
 
 ---
 
-## 3. One security note
+## 5. One security note
 
-`POST /api/vonage/video/member-call` **takes no authentication.** We are not
-designing around it, but as it stands anyone can place a call against any
-`organizationId`/`memberUserId` they can guess, and it routes to a real attorney.
+`POST /api/vonage/video/member-call` **takes no authentication.**
+
+We are not designing around it and nothing we have built depends on it staying
+open — but as it stands, anyone can place a call against any
+`organizationId`/`memberUserId` they can guess, and that call routes to a real
+attorney.
 
 Flagging rather than assuming it is known.
 
 ---
 
-## 4. What we will ship as each lands
+## 6. What we ship as each lands
 
 | You give us | We ship |
 |---|---|
-| Incident types + a case seeded on dev | Home and the call flow verified against real data |
-| An attorney online for a window | A proven end-to-end video call, both platforms |
-| Answers to §2.3 | OTP sign-in, token refresh, and registration screens 08–12 |
-| Situation-preference endpoints | The home screen's saved three, as designed |
-| Trial/guest model decision | Those flows scoped |
-| Deep-link contract | One-line change, then verified |
+| Countries, incident types, a language, and a case on dev | Home and the call flow verified against real data |
+| Answers to §3 | OTP sign-in, token refresh, and registration screens 08–12 |
+| Situation-preference endpoints (§2.1) | The home screen's saved three, as designed |
+| A decision on the guest model (§2.2) | Trial and guest flows scoped |
+| The deep-link contract (§4) | A one-line change, then verified |
 
-Everything in §2.3 we can start immediately — the schema is there and the screens
-are specified.
+Everything in §3 we can start immediately — the operations are in the schema and
+the screens are specified in the design reference.

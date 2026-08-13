@@ -43,25 +43,29 @@ missing.
 
 ## Still open
 
-### 1. Dev data is empty — BLOCKING
+### 1. Dev data is not seeded — BLOCKING
 
-`adminIncidentTypeList(activeOnly: false)` returns `[]` and the test member has
-no cases. No errors — there is simply nothing seeded. Home correctly shows its
-empty state, which means the tile grid, attorney chips and a real incident-typed
-call cannot be exercised.
+`countries` returns `[]`, and because `adminIncidentTypeList` is filtered by
+`countryISO2`, it returns `[]` for every country tried. `casesByUser` is empty
+too, and the only language is `ar-SA` with `isDefault: false`. No errors on any
+of it.
 
-**Need:** incident types (with translations) and a case for the test member.
+We send the identical query the deployed member client sends (lifted from its JS
+bundle), so this is not a difference in how we ask.
 
-### 2. No attorney has ever been online — HIGH
+**Need on dev:** countries configured (at least `US`), incident types seeded with
+translations, an English language entry marked default, and a case for the test
+member.
+
+### 2. No attorney has ever been online — OURS TO ARRANGE, not a backend ask
 
 `member-call` returns `409`. Going online is
-`commsUpsertAttorneyQueueMember(queueId, attorneyId, role, weight)` with a wider
+`commsUpsertAttorneyQueueMember(queueId, attorneyId, role, weight)`, with a wider
 presence model behind it (`attorneyPresence`, `attorneyActiveSession`,
 `attorneyDevice`).
 
-**Need:** an attorney account, or someone to run `lfr-desktop` for a window. We
-have not done this ourselves — shared environment, and it would make someone
-appear available for real calls.
+**We are handling this ourselves** by running `lfr-desktop` — it is a desktop app
+and that is what it is for. Not on the backend list.
 
 ### 3. Shape confirmations — HIGH
 
