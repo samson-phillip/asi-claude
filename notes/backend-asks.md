@@ -27,6 +27,8 @@ it is corrected and marked.
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
 | B5 | No trial or guest operations | HIGH | 13 screens (V1–V2, T1–T8, G1–G3) |
 | C1–C8 | Eight answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
+| A5 | `deleteUserDocument` is `forbidden` for a member's own file | HIGH | Removing a document from the Glovebox |
+| A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
 | D1 | `member-call` takes no authentication | **SECURITY** | — |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
 
@@ -165,6 +167,54 @@ pre-selection at all.
 
 > If it is easier to point us at an environment that already has A1–A4, that
 > works just as well. We only need somewhere to develop against.
+
+### A5 — a member cannot delete their own document · HIGH
+
+The Glovebox is built and uploading against dev. One thing does not work:
+
+```
+mutation { deleteUserDocument(id: "<the member's own document>") }
+→ {"errors":[{"message":"forbidden"}]}
+```
+
+Called as the signed-in member, on a document that member uploaded a moment
+earlier. Everything else in the chain works —
+`requestUserDocumentUpload` → `PUT` to S3 → `createUserDocument` →
+`userDocumentList` → `userDocumentDownloadUrl` all round-trip, and we fetched the
+exact bytes back.
+
+The design puts a `✕` on every uploaded document tile (screens 14A, 14C: *"Deleting
+the last file restores the dropzone"*). **We have shipped no delete control**,
+because one that always fails is worse than none.
+
+**What we need:** either member scope on `deleteUserDocument` for their own rows,
+or a `deleteMyUserDocument`-style operation.
+
+**Meanwhile:** two test files of ours are stuck on the test member's Driver's
+Information section (`probe.txt`, `ui.xml`) and we cannot remove them.
+
+### A6 — what does the document-field `type` vocabulary mean? · MEDIUM
+
+`AdminDocumentField.type` is a free-form string. Across dev we see:
+
+```
+text  dropdown  file  image  agreement  policy  guide  form
+example  "example 3"  "example 4"  "example 5"
+```
+
+We render `text`, `dropdown` and `file`, and treat everything else as not-member-
+input. That rule is what keeps the organisation's templates (Contract, Form,
+Guide, Policy, Incident Report) out of a member's personal Glovebox.
+
+**`image` is the one that bit us.** We first mapped it to a file upload — it looks
+like one — and "Policy" duly appeared in the member's Glovebox, because Policy has
+an `image` field called "Example". We now treat `image` as unknown.
+
+**What we need:** the intended list of `type` values and what each should render
+as. If `image` really is an upload, we will map it — we just will not guess.
+
+Also, `adminDocumentTypeList` still holds dev test rows (`contract 2`, `Extra
+books`) and several `example*` fields. Harmless to us now, but worth tidying.
 
 ---
 
@@ -339,7 +389,9 @@ keystore exists — that part is on us.
 | You give us | We ship |
 |---|---|
 | ~~A2 — incident types + an English language~~ | ✅ done — Home renders real tiles |
-| ~~A3 — document types + fields~~ | Next up for us: the Glovebox, screens 14, 14A–14D |
+| ~~A3 — document types + fields~~ | ✅ done — the Glovebox is built and uploading |
+| A5 — member scope on delete | The `✕` on each document tile |
+| A6 — the `type` vocabulary | Confidence that every field renders as intended |
 | A4 — a case for the test member | Real jurisdiction and attorney pre-selection |
 | B1 — phone send/verify | Registration screens 08 and 09 |
 | B2 — a pronouns field | The last field of screen 10 |
@@ -360,7 +412,10 @@ details, address, security PIN, set-a-password, emergency contacts, **a home
 screen with six real incident tiles**, the call flow up to "connecting", and the
 deep-link handler.
 
-With A3 in place, the Glovebox is what we build next.
+**The Glovebox is built and verified on a device against dev** — sections and
+fields render from your configuration rather than being hardcoded, text and
+dropdown answers save, and a file goes picker → presigned S3 → `createUserDocument`
+with the tile appearing straight afterwards.
 
 **One thing we have never been able to prove:** a video call actually going live.
 `member-call` returns `409 no attorney is available` on dev. We are arranging an

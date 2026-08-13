@@ -5,7 +5,7 @@ resolve from inside the code. Separate from
 [backend-gaps.md](backend-gaps.md), which tracks what we need *from other
 people*.
 
-Last updated: 2026-08-13, after the dev seeding landed.
+Last updated: 2026-08-13, after building the Glovebox.
 
 ---
 
@@ -119,6 +119,12 @@ whoever set the deadline knows that.
   proved text assertions miss layout faults.
 - **No launcher icon or brand shield asset.** The lockup draws a placeholder
   shield in gold.
+- **iOS has no Glovebox yet.** Android is built and verified; the platforms are
+  out of step for the first time in this project. Next thing I pick up.
+- **No camera capture.** The design's document screens show [Camera] [Gallery];
+  we ship a document picker, which covers photos and PDFs but not capture.
+- **No in-app document viewer.** "Open" hands the presigned URL to the browser.
+  A real viewer is a bigger job, and faking a preview would be worse.
 - **`iconFilePath` now carries real CloudFront URLs and we still draw emoji.**
   Before seeding this was theoretical; now it is a visible gap against the design
   on the app's main screen. Android needs an image-loading dependency (Coil); iOS
