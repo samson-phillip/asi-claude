@@ -1,7 +1,7 @@
 # Attorney Shield 2.0 — Backend asks from the native apps
 
 **From:** mobile (Android + iOS)
-**Date:** 2026-08-13 — **re-verified end to end after "done with my end"**
+**Date:** 2026-08-13 — **re-verified twice; second pass caught four operations you shipped mid-afternoon**
 **Environment:** `https://gateway-dev.attorneyshield.io/query` · `https://comms-dev.attorneyshield.io`
 
 Every item below is something **you can act on**. Our own to-dos, design
@@ -13,17 +13,34 @@ it is corrected and marked.
 
 ---
 
-## Where things stand after your latest pass
+## Where things stand
 
-We re-ran every item in this document against dev today, signed in as the test
-member. **`countries` is fixed — thank you, that was the one you said you were
-working on.** Nothing else in here has moved yet, so the list below is the
-remaining work rather than a new list.
+### You shipped four operations this afternoon — thank you
 
-| Re-tested today | Result |
+We went looking for trial operations and found these instead. **They close B1, B3
+and C8 outright**, and we had not been told, so flagging in case anything else
+landed with them:
+
+| New | Closes | Unblocks |
+|---|---|---|
+| `requestPhoneVerification(phoneE164)` → `{ sent, maskedPhone, expiresInSeconds }` | **B1** | Registration screens 08 and 09 |
+| `verifyPhone(phoneE164, code)` → `Boolean` | **B1** | " |
+| `myCommonSituations` / `setMyCommonSituations(incidentTypeIds)` | **B3** | Screens 13B, 13C, 27B |
+| `completeMyOnboarding()` → `UserProfile`, plus `UserProfile.onboardingCompletedAt` | **C8** | We can stop inferring completeness from five other fields |
+
+`myCommonSituations` returns `[]` for our test member and
+`onboardingCompletedAt` is null, both as expected. **We have not called
+`requestPhoneVerification`** — it sends a real SMS, and we would rather do that
+deliberately when we build the screen than as a probe.
+
+One question on B1: **how many digits is the phone code?** Sign-in codes are 4;
+the design draws 6 cells for phone verification.
+
+### Earlier the same day
+
+| Re-tested | Result |
 |---|---|
 | `countries { iso2 name }` | **United States** ✅ — was `[]` |
-| Schema shape | **Byte-identical** to yesterday: 238 queries, 297 mutations, no type or input-field changes |
 | A5 `deleteUserDocument` on the member's own file | still `forbidden` |
 | A6 field `type` vocabulary and the dev test rows | unchanged |
 | D1 `POST /api/vonage/video/member-call` unauthenticated | still accepted (reaches body validation with no token) |
@@ -47,15 +64,17 @@ emergency.
 | A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
 | A7 | `addSubaccount` accepts a `seatPriceID` that does not exist | **DATA** | Correct billing on family seats |
 | A8 | `attorneyAssignments { attorney { … } }` times out | MEDIUM | Attorney name on the Activity timeline |
-| B1 | No phone send/verify operations | HIGH | Registration screens 08, 09 |
+| B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED — `requestPhoneVerification` / `verifyPhone`** |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
-| B3 | No situation-preference operations | HIGH | Screens 13B, 13C + the saved-three row on Home |
+| B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED — `myCommonSituations` / `setMyCommonSituations`** |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
-| B5 | No trial or guest operations | HIGH | 13 screens (V1–V2, T1–T8, G1–G3) |
+| B5 | No way to convert a trial and charge | HIGH | 5 native screens (V2, T5–T8) — spec below |
+| B5a | No guest model | HIGH | 3 screens (G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
 | B7 | No way to change a card in-app | MEDIUM | Screen 33D, and the Update row on 33A |
 | B8 | Notification categories, frequency and `kind` | MEDIUM | Most of screen 26 |
-| C1–C8 | Eight answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
+| C1–C7 | Seven answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
+| C8 | An onboarding-complete flag | ~~MEDIUM~~ | ✅ **SHIPPED — `completeMyOnboarding`, `onboardingCompletedAt`** |
 | D1 | `member-call` takes no authentication | **SECURITY** | — |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
 
@@ -380,12 +399,52 @@ settings column — it works until something reads `notes` expecting notes.
 **Need:** two booleans (`notifyBySms`, `notifyByEmail`) or a small enum on the
 contact.
 
-### B5 — Trial and guest · HIGH · blocks 13 screens
+### B5 — The trial conversion, in detail · HIGH · blocks 5 native screens
 
-Nothing matching `trial` or `guest`.
+**This is the one that is now precisely specifiable, so here it is in full.**
 
-The design has a 7-day limited trial with an in-app conversion gate (V1–V2,
-T1–T8) and a guest mode entered from an unrecognised email at sign-in (G1–G3).
+Of the ten trial screens, five are yours on the web (V1, T1, T2, T3, T4 — the
+plan card, the conversion-plan chooser, trial checkout, trial confirmation, and
+the return-to-app handoff). We do not build those. Five are native: **V2** the
+gate, **T5/T6** the charge notice, **T7** processing, **T8** confirmed.
+
+**What already works.** A member can see they are on a trial:
+`myMembership.trialEnd` is readable, and so are the plan, the price and the card
+on file. So V2's status line and T5/T6's summary all have real data behind them.
+
+**What is missing is the single action they exist for.** Nothing converts a
+trial to a paid membership and charges the card on file:
+
+| Candidate | Why it is not this |
+|---|---|
+| `createPayment` | Takes `invoiceID` + `providerPaymentID` — it **records** a payment a provider already took, it does not take one |
+| `changeMembershipPlan` | Changes which plan, not trial → paid |
+| `resumeMembership` | For a paused membership |
+| `PublicCheckoutInput.trialDays` | Web checkout, unauthenticated, starts a trial rather than ending one |
+
+**Need: one member-callable mutation.** Roughly:
+
+```graphql
+convertMyTrial(organizationID: ID!): Membership!
+```
+
+charging the card already on file, ending the trial immediately, and returning
+the membership so we can show T8. Errors we would need to tell apart: no card on
+file, card declined, and not-on-a-trial.
+
+**We have built none of the five.** Showing the gate without its action would be
+worse than not showing it: a member on a trial would be told "live attorney
+access starts your paid membership", tap the only button offered, and nothing
+would happen. Worse, if we shipped the *status* alone, the app would advertise a
+trial while still behaving like a paid membership, because there is nothing to
+gate on.
+
+**Also needed to test any of it:** a way to put the test member on a trial.
+`trialEnd` is null on our account and nothing member-callable can set it.
+
+### B5a — Guest mode · HIGH · blocks G1–G3
+
+Still nothing matching `guest`.
 
 **The question that decides the whole design: is a guest a real account with a
 role, or purely local state?**
@@ -565,6 +624,9 @@ keystore exists — that part is on us.
 
 | You give us | We ship |
 |---|---|
+| ~~B1 — phone send/verify~~ | ✅ shipped — screens 08 and 09 are unblocked |
+| ~~B3 — situation preferences~~ | ✅ shipped — screens 13B, 13C, 27B are unblocked |
+| ~~C8 — an onboarding flag~~ | ✅ shipped — we can stop inferring completeness |
 | ~~A2 — incident types + an English language~~ | ✅ done — Home renders real tiles |
 | ~~A3 — document types + fields~~ | ✅ done — the Glovebox is built and uploading |
 | A5 — member scope on delete | The `✕` on each document tile |
