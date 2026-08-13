@@ -33,8 +33,8 @@ landed with them:
 `requestPhoneVerification`** — it sends a real SMS, and we would rather do that
 deliberately when we build the screen than as a probe.
 
-One question on B1: **how many digits is the phone code?** Sign-in codes are 4;
-the design draws 6 cells for phone verification.
+~~One question on B1: how many digits is the phone code?~~ **Answered: six.**
+Sign-in stays at four. Both screens are built against six.
 
 ### Earlier the same day
 
@@ -64,7 +64,7 @@ emergency.
 | A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
 | A7 | `addSubaccount` accepted a bogus `seatPriceID` | ~~DATA~~ | ✅ **SHIPPED — validated on the way in** |
 | A8 | Attorney behind a call | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — `attorneyDisplayName`** |
-| B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED — `requestPhoneVerification` / `verifyPhone`** |
+| B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 08 and 09 are live** |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
 | B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
@@ -624,7 +624,7 @@ keystore exists — that part is on us.
 
 | You give us | We ship |
 |---|---|
-| ~~B1 — phone send/verify~~ | ✅ shipped — screens 08 and 09 are unblocked |
+| ~~B1 — phone send/verify~~ | ✅ done — screens 08 and 09 are built |
 | ~~B3 — situation preferences~~ | ✅ shipped — screens 13B, 13C, 27B are unblocked |
 | ~~C8 — an onboarding flag~~ | ✅ shipped — we can stop inferring completeness |
 | ~~A2 — incident types + an English language~~ | ✅ done — Home renders real tiles |
@@ -636,7 +636,6 @@ keystore exists — that part is on us.
 | B6 — a transcript | "View transcript" on Test Call entries |
 | B8 — categories + frequency | The rest of screen 26's controls |
 | B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
-| B1 — phone send/verify | Registration screens 08 and 09 |
 | B2 — a pronouns field | The last field of screen 10 |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
 | B4 — notify-by | The last two controls of screen 16 |
