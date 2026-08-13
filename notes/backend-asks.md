@@ -66,7 +66,7 @@ emergency.
 | A8 | `attorneyAssignments { attorney { … } }` times out | MEDIUM | Attorney name on the Activity timeline |
 | B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED — `requestPhoneVerification` / `verifyPhone`** |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
-| B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED — `myCommonSituations` / `setMyCommonSituations`** |
+| B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
 | B5 | No way to convert a trial and charge | HIGH | 5 native screens (V2, T5–T8) — spec below |
 | B5a | No guest model | HIGH | 3 screens (G1–G3) |
