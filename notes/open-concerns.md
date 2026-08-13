@@ -162,3 +162,11 @@ are safe to delete but slow to rebuild, so that is your call.
   `design-reference-codepen.md`), most importantly that the family plan capacity
   is stated four different ways. That one blocks building the member stepper and
   needs Attorney Shield to rule.
+- **Three iOS `DynamicTypeUITests` fail on a simulator with a saved session.**
+  They assert the Welcome screen; the app restores the session and opens on
+  Home. Pre-existing and environment-dependent — they should clear the keychain
+  before launching.
+- **`adb shell am start` needs the `.debug` package id.** The debug build has an
+  `applicationIdSuffix`, so launching `com.app.attorney.shield` silently starts
+  an older APK installed under the un-suffixed id. Cost an hour of chasing a
+  phantom gateway error. Check `pm list packages | grep attorney` first.

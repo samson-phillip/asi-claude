@@ -1,7 +1,7 @@
 # Attorney Shield 2.0 — Backend asks from the native apps
 
 **From:** mobile (Android + iOS)
-**Date:** 2026-08-13 (updated after the seeding landed)
+**Date:** 2026-08-13 — **re-verified end to end after "done with my end"**
 **Environment:** `https://gateway-dev.attorneyshield.io/query` · `https://comms-dev.attorneyshield.io`
 
 Every item below is something **you can act on**. Our own to-dos, design
@@ -13,22 +13,48 @@ it is corrected and marked.
 
 ---
 
+## Where things stand after your latest pass
+
+We re-ran every item in this document against dev today, signed in as the test
+member. **`countries` is fixed — thank you, that was the one you said you were
+working on.** Nothing else in here has moved yet, so the list below is the
+remaining work rather than a new list.
+
+| Re-tested today | Result |
+|---|---|
+| `countries { iso2 name }` | **United States** ✅ — was `[]` |
+| Schema shape | **Byte-identical** to yesterday: 238 queries, 297 mutations, no type or input-field changes |
+| A5 `deleteUserDocument` on the member's own file | still `forbidden` |
+| A6 field `type` vocabulary and the dev test rows | unchanged |
+| D1 `POST /api/vonage/video/member-call` unauthenticated | still accepted (reaches body validation with no token) |
+| A4 `casesByUser` | **not empty any more — but only because our own test calls created six cases.** `partnerID` is null on all of them and the jurisdiction is still the hard-coded dev seed, so attorney pre-selection is as untestable as before |
+
+**We are not blocked on any of it right now** — this week's screens are all built
+on operations that already work. Please treat the below as a queue, not an
+emergency.
+
+---
+
 ## At a glance
 
 | # | Ask | Severity | Unblocks |
 |---|---|---|---|
-| A1 | `countries` returns `[]` | ~~HIGH~~ | ✅ **FIXED — thank you** |
-| A2 | Incident types + an English default language | ~~BLOCKING~~ | ✅ **FIXED — Home now renders real tiles** |
-| A3 | Document types + fields | ~~HIGH~~ | ✅ **FIXED — the Glovebox is unblocked** |
-| A4 | No case for the test member | MEDIUM | Attorney pre-selection, real jurisdiction |
+| A1 | `countries` returns `[]` | ~~HIGH~~ | ✅ **FIXED — verified today** |
+| A2 | Incident types + an English default language | ~~BLOCKING~~ | ✅ **FIXED — Home renders real tiles** |
+| A3 | Document types + fields | ~~HIGH~~ | ✅ **FIXED — the Glovebox is built** |
+| A4 | Still no *real* case for the test member | MEDIUM | Attorney pre-selection, real jurisdiction |
+| A5 | `deleteUserDocument` is `forbidden` for a member's own file | HIGH | Removing a document from the Glovebox |
+| A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
+| A7 | `addSubaccount` accepts a `seatPriceID` that does not exist | **DATA** | Correct billing on family seats |
+| A8 | `attorneyAssignments { attorney { … } }` times out | MEDIUM | Attorney name on the Activity timeline |
 | B1 | No phone send/verify operations | HIGH | Registration screens 08, 09 |
 | B2 | No pronouns field | LOW | The last field of screen 10 |
 | B3 | No situation-preference operations | HIGH | Screens 13B, 13C + the saved-three row on Home |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
 | B5 | No trial or guest operations | HIGH | 13 screens (V1–V2, T1–T8, G1–G3) |
+| B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
+| B7 | No way to change a card in-app | MEDIUM | Screen 33D, and the Update row on 33A |
 | C1–C8 | Eight answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
-| A5 | `deleteUserDocument` is `forbidden` for a member's own file | HIGH | Removing a document from the Glovebox |
-| A6 | What the document-field `type` vocabulary means | MEDIUM | Rendering the right control per field |
 | D1 | `member-call` takes no authentication | **SECURITY** | — |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
 
@@ -47,10 +73,26 @@ it is corrected and marked.
 | Emergency contacts | `createEmergencyContact` + CRUD |
 | States/provinces | `subdivisionsByCountry` — all 50 US states resolve |
 | Video call credentials | `POST /api/vonage/video/member-call` |
+| Membership + entitlement | `myMembership`, `membershipEntitlement` |
+| Plan name and price | `Membership.items → price → product` |
+| Card on file (read) | `myPaymentMethods` |
+| Family sub-accounts | `mySubaccounts`, `addSubaccount`, `removeSubaccount`, `sendUserInvite` |
+| Receipts | `invoicesBySubscriber` |
+| Call history | `commsCallsByMember` |
+| Change password | `changePassword` |
+| Language + notification prefs | `updateMyProfile` (`primaryLanguageTag`, `notificationsEnabled`, `marketingOptIn`) |
+| Terms and privacy text | `adminTermsOfServiceList` — four live documents |
+| Close account | `deleteMyAccount` |
 
 All of the above are **built and writing to dev.** The Vonage SDK is also proven
 on a real Android device: the native library loads, reports 2.32.1, and completes
 a round trip to Vonage.
+
+The second half of that table is new since the last version of this document. We
+had not looked past registration; when we did, most of the account section turned
+out to already exist. **We are telling you so you don't build it twice** — the
+member-facing Profile, Payment & plan, Family members, Settings and Activity
+screens are all built on operations that were already there.
 
 ---
 
@@ -156,17 +198,70 @@ to, and none of the Glovebox can be built.
 Also please tell us **what `fieldType` values exist**, so we render the right
 control for each field rather than guessing.
 
-### A4 — No case for the test member · MEDIUM
+### A4 — Still no *real* case for the test member · MEDIUM
 
-`casesByUser(userID: <test member>)` → `[]`.
+`casesByUser` is no longer empty, but nothing was seeded — **the six cases there
+are ones our own test calls created.** All six look like this:
 
-The member's organization resolves correctly
-(`6c53e00d-8682-11f1-a446-06cf81ac74a7`), but with no case, jurisdiction and
-partner fall back to the hard-coded dev seed ids and we cannot exercise attorney
-pre-selection at all.
+```
+jurisdictionID: de400000-0000-4000-8000-000000000001   ← the hard-coded dev seed
+partnerID:      null
+```
 
-> If it is easier to point us at an environment that already has A1–A4, that
-> works just as well. We only need somewhere to develop against.
+`partnerAttorneys` returns `[]` for both the dev partner id and the org id, so
+attorney pre-selection still cannot be exercised at all — which was the point of
+the ask.
+
+**Need:** one case on the test member with a real jurisdiction and a real
+partner, and at least one attorney under that partner.
+
+> If it is easier to point us at an environment that already has this, that works
+> just as well. We only need somewhere to develop against.
+
+### A7 — `addSubaccount` accepts a `seatPriceID` that does not exist · DATA
+
+Found by accident while probing permissions. We sent an all-zeros UUID expecting
+a validation error:
+
+```graphql
+addSubaccount(input: {
+  organizationID: "<org>", firstName: "Probe", lastName: "Only",
+  email: "probe-only@example.invalid",
+  seatPriceID: "00000000-0000-0000-0000-000000000000"    # does not exist
+})
+→ { "id": "33d1fdb4-…" }                                  # created anyway
+```
+
+The sub-account was created with `kind: "included"`, `status: "invited"`. We
+removed it immediately with `removeSubaccount` and confirmed `mySubaccounts` is
+empty and the seat counts are back to `seatsUsed: 1`.
+
+Blank names or a blank email *are* rejected (`billing: first name, last name and
+email are required`), so validation exists — the price id simply is not checked.
+A client that passes the wrong id gets a seat that bills against nothing.
+
+**Need:** reject an unknown `seatPriceID`. (We pass the real one from
+`myMembership.items[].price.id`, so this is not blocking us.)
+
+### A8 — the attorney behind a call cannot be read without a timeout · MEDIUM
+
+For the Activity timeline we want the attorney's name on each session, as the
+design shows. The nested field hangs:
+
+| Selection | Result |
+|---|---|
+| `attorneyAssignments { id status }` | 1.7 s ✅ |
+| `attorneyAssignments { id status attorneyId }` | 1.1 s ✅ |
+| `attorneyAssignments { id attorney { displayName } }` | **504 after 60 s** |
+
+`attorneyId` resolves (`de300000-0000-4000-8000-000000020006`) but there is no
+member-callable query that turns an attorney id into a name —
+`partnerAttorneys` is empty for us (A4).
+
+**We ship the timeline without attorney names** rather than showing an id or
+leaving a blank where a name belongs.
+
+**Need:** either the nested resolver fixed, or a name on the assignment itself.
 
 ### A5 — a member cannot delete their own document · HIGH
 
@@ -300,6 +395,41 @@ unrecognised email at sign-in**, so guest mode cannot be entered the way the
 design describes. Whatever the model turns out to be, that branch needs
 rethinking with you.
 
+### B6 — No member-readable transcript · LOW · one link on screen 32
+
+The Activity design deliberately drops recording replay, but keeps
+*"Test Call entries keep View transcript, the intended way to review demo
+sessions."*
+
+`CommsCallRecording` exists with `playbackUrl` and `vonageRecordingUrl`, but
+those are recordings, not transcripts, and `biCallRecordingUrl` is a BI
+operation a member cannot call. Nothing matching `transcript` exists.
+
+**We ship the timeline without the link.** Not urgent — but if transcripts are
+coming, we would rather wire the real thing than add a link now.
+
+### B7 — A member cannot change their card in the app · MEDIUM · blocks 33D
+
+Screen 33D lets a member edit the expiry and billing ZIP inline and replace the
+card. Today:
+
+- **No `updatePaymentMethod`.** The mutations are `createPaymentMethod`,
+  `attachPaymentMethod`, `setDefaultPaymentMethod`, `detachPaymentMethod`.
+- **No billing ZIP** on `PaymentMethod` at all — the fields are `brand`, `last4`,
+  `expMonth`, `expYear`, `billingName`, `billingEmail`, `billingCountryID`.
+- **`attachPaymentMethod` takes a `providerRef`** — a token from the payment
+  provider. Minting one needs the provider's SDK and publishable key in the app,
+  which is a decision for you, not something we should choose unilaterally.
+
+**We show the card read-only** on Payment & plan — brand, last four, expiry — with
+no Update control, because every write path available to us either does not exist
+or would need a credential we have not been given.
+
+**Need, in order of preference:** (a) a hosted card-update link we can open, the
+same way checkout already works on the web; or (b) `updatePaymentMethod` for
+expiry, plus a ZIP field; or (c) the provider's publishable key and a decision to
+embed their SDK.
+
 ---
 
 # C. Answers we need — each of these is a guess today
@@ -393,6 +523,9 @@ keystore exists — that part is on us.
 | A5 — member scope on delete | The `✕` on each document tile |
 | A6 — the `type` vocabulary | Confidence that every field renders as intended |
 | A4 — a case for the test member | Real jurisdiction and attorney pre-selection |
+| A8 — the attorney behind a call | Attorney names on the Activity timeline |
+| B6 — a transcript | "View transcript" on Test Call entries |
+| B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
 | B1 — phone send/verify | Registration screens 08 and 09 |
 | B2 — a pronouns field | The last field of screen 10 |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
