@@ -5,7 +5,7 @@ Running register of what the mobile apps need from the backend.
 **Status key:** BLOCKING = stopped now · HIGH = blocks a phase · LATER = needed,
 not urgent.
 
-Last updated: 2026-08-12, after introspecting the live gateway.
+Last updated: 2026-08-13, after building the finish-setup wizard.
 
 ---
 
@@ -32,7 +32,10 @@ missing.
 | Dev member account | Supplied; sign-in verified end to end on Android |
 | Token refresh | `refreshToken(input: RefreshTokenInput)` |
 | OTP sign-in | `requestLoginOtp(email, channel)` / `verifyLoginOtp(email, code, countryISO2)` |
-| Registration 08–12 | `register`, `createUserProfile`, `createUserAddress`, `setMemberPin`, `verifyMemberPin`, `memberPinStatus` |
+| Registration 10–12 | `updateMyProfile` (DOB/gender/address), `createUserAddress`, `setMemberPin`, `memberPinStatus` — **built and verified on device**. 08/09 blocked, see §4 |
+| Date format | `dateOfBirth` must be `YYYY-MM-DD`; the gateway says so in the error |
+| `Gender` enum | `male`, `female`, `other`, `non_binary`, `unspecified` (lower-case) |
+| States/provinces | `subdivisionsByCountry(countryId:)` returns all 50 US states |
 | Document vault | `createUserDocument`, `deleteUserDocument`, `adminDocumentTypeList`, request/finalize upload pattern |
 | Family / plan / payment | `addSubaccount`, `changeMembershipSeats`, `changeMembershipPlan`, `attachPaymentMethod`, `createSetupIntent` |
 | Notifications | `notificationList`, `markNotificationRead`, `markAllNotificationsRead`, `clearNotifications`, `registerWebPush` |
@@ -45,17 +48,22 @@ missing.
 
 ### 1. Dev data is not seeded — BLOCKING
 
-`countries` returns `[]`, and because `adminIncidentTypeList` is filtered by
-`countryISO2`, it returns `[]` for every country tried. `casesByUser` is empty
-too, and the only language is `ar-SA` with `isDefault: false`. No errors on any
-of it.
+**Corrected 2026-08-13.** We previously said no countries were configured. Wrong:
 
-We send the identical query the deployed member client sends (lifted from its JS
-bundle), so this is not a difference in how we ask.
+- `countries` → `[]`
+- `country(id: f989d06a-…)` → **United States, `US`**
+- `subdivisionsByCountry(<that id>)` → **all 50 states + DC**
 
-**Need on dev:** countries configured (at least `US`), incident types seeded with
-translations, an English language entry marked default, and a case for the test
-member.
+The data exists; the **`countries` list query** is what returns empty. We read
+the country from the member's profile instead, which works and is arguably more
+correct, but the list query is broken.
+
+**Genuinely still empty:** incident types (retested authenticated, with and
+without a country filter) and languages (only `ar-SA`, not default).
+`casesByUser` is also empty.
+
+**Need on dev:** `countries` fixed, incident types seeded with translations, an
+English language entry marked default, and a case for the test member.
 
 ### 2. No attorney has ever been online — OURS TO ARRANGE, not a backend ask
 
@@ -90,6 +98,17 @@ And: **one device may be signed in at a time** (`otherSessionsRevoked`,
 
 ### 4. Genuinely absent from the schema — HIGH
 
+Nothing here is worked around with a placeholder; the feature is left unbuilt and
+listed, so it cannot be forgotten.
+
+- **Phone capture and verification** (screens 08, 09). `updateMyContactInfo` can
+  *store* `phoneE164`, but nothing sends or checks a phone code, and
+  `phoneVerifiedAt` is admin-only. `requestLoginOtp(channel: SMS)` is a sign-in
+  code to an already-verified phone, so it cannot verify a new one. **Both
+  screens omitted** rather than shipping the entry half with its "we'll text you
+  a code" promise reworded away.
+- **Pronouns** (screen 10). No pronoun field on any input type, schema-wide. The
+  input is absent rather than collected and dropped.
 - **Situation preferences** (13B, 13C, 27B). No `situation` / `preference` /
   `favourite` operations. Home shows the full list because there is nowhere to
   store a choice.

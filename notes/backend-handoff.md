@@ -1,45 +1,52 @@
 # Attorney Shield 2.0 — What the Native Apps Need from the Backend
 
 **From:** mobile (Android + iOS)
-**Date:** 2026-08-12
+**Date:** 2026-08-13
 
 The native apps now sign in against `gateway-dev` — by password **and by
-one-time code** — and reach the home screen. Most of what we need already exists
-in the schema; this is the short list of what does not, plus a few shapes we
-would rather confirm than guess.
+one-time code** — reach the home screen, and complete the registration steps that
+have endpoints (personal details, address, security PIN). This is the short list
+of what is still missing, plus a few shapes we would rather confirm than guess.
+
+Where something has no backend we have **left it unbuilt and listed it here**,
+rather than shipping a placeholder that looks finished.
 
 ---
 
 ## 1. Dev data is not seeded — this is what blocks us
 
-Signed in as the test member against `https://gateway-dev.attorneyshield.io/query`:
+**Correction to an earlier version of this document.** We previously told you no
+countries were configured. That was wrong, and the detail matters. Signed in as
+the test member against `https://gateway-dev.attorneyshield.io/query`:
 
 | Query | Result |
 |---|---|
-| `countries { iso2 }` | `[]` |
+| `countries { iso2 }` | **`[]`** |
+| `country(id: "f989d06a-8813-11f1-a446-06cf81ac74a7")` | **United States, `US`** ✅ |
+| `subdivisionsByCountry(countryId: <that US id>)` | **all 50 states + DC** ✅ |
 | `adminIncidentTypeList(activeOnly: false)` | `[]` |
-| `adminIncidentTypeList(activeOnly: true, countryISO2: "US" \| "GB" \| "ZW")` | `[]` |
+| `adminIncidentTypeList(activeOnly: true, countryISO2: "US")` | `[]` |
 | `casesByUser(userID: <test member>)` | `[]` |
 | `adminLanguageList` | 1 entry — `ar-SA`, `isDefault: false` |
 
-No errors on any of them — the data simply is not there. Because
-`adminIncidentTypeList` is filtered by `countryISO2` and **no countries are
-configured**, it returns empty for every value we tried.
+So country and subdivision data **is** there. It is the **`countries` list query
+that returns empty** while `country(id:)` and `subdivisionsByCountry` both work
+on the same records. Our test member's profile even points at that US id.
 
-The home screen therefore shows "No incident types are configured yet.", which is
-correct behaviour on our side but means we cannot exercise the incident tiles,
-the attorney chip row, or place a call with a real incident type.
+We have worked around it by reading the country from the member's own profile
+rather than a picker, which is arguably more correct anyway — but the list query
+looks broken or scoped in a way nobody intended, and we would rather you knew
+than have us quietly route around it.
 
-We sent the same query the deployed member client sends —
-`adminIncidentTypeList(activeOnly: true, countryISO2: $country)`, lifted from its
-JS bundle — so this is not a difference in how we are asking.
+**What we still need on dev:**
 
-**What we need on dev:**
-
-1. **Countries configured**, at minimum `US`.
-2. **Incident types seeded** for that country, with translations. The design
-   reference uses: Traffic Stop, Auto Accident, Pedestrian Stop, Domestic, Test
-   Call, Other.
+1. **`countries` fixed** — it returns `[]` while the underlying rows resolve
+   fine by id. Possibly a scope/filter issue.
+2. **Incident types seeded**, with translations. Still `[]` authenticated, with
+   and without a `countryISO2` filter, so this is not a country-filter
+   side-effect. The design reference uses: Traffic Stop, Auto Accident,
+   Pedestrian Stop, Domestic, Test Call, Other. **This is the one that blocks
+   the home screen and the call flow.**
 3. **An English language entry**, ideally `isDefault: true`. Today the only
    language is `ar-SA` and it is not marked default, so even with incident types
    present our label resolution (English → org default → first → humanized code)
@@ -50,6 +57,10 @@ JS bundle — so this is not a difference in how we are asking.
    (`6c53e00d-8682-11f1-a446-06cf81ac74a7`), but with no case we cannot exercise
    attorney pre-selection at all.
 
+The home screen currently shows "No incident types are configured yet.", which is
+correct behaviour on our side but means we cannot exercise the incident tiles,
+the attorney chip row, or place a call with a real incident type.
+
 If it is easier to point us at an environment that already has this data, that
 works too — we only need somewhere to develop against.
 
@@ -57,7 +68,8 @@ works too — we only need somewhere to develop against.
 
 ## 2. Missing from the schema entirely
 
-Two areas returned **no matching operations**, so we cannot build them:
+Four areas have no backend, so we have not built them. In each case we have
+left the gap visible rather than filled it with a placeholder:
 
 ### 2.1 Situation preferences — screens 13B, 13C, 27B
 
@@ -68,7 +80,41 @@ Home currently shows the full incident list, because there is nowhere to store a
 choice of three. Roughly: a read and a write, capped at three incident-type IDs
 per member.
 
-### 2.2 Trial and guest — screens V1–V2, T1–T8, G1–G3
+### 2.2 Phone capture and verification — screens 08 and 09
+
+The design's registration completion starts with "Enter your phone number" then
+"Verify your phone" with a 6-digit texted code. **We have built neither, on
+purpose.**
+
+- `updateMyContactInfo(input: { phoneE164 })` can *store* a number. That works.
+- **Nothing sends or checks a phone code.** We searched every one of the 297
+  mutations; there is no `requestPhoneOtp`, no `verifyPhone`, nothing.
+  `requestLoginOtp(channel: SMS)` is a *sign-in* code to an
+  already-verified phone, so it cannot verify a new one.
+- `phoneVerifiedAt` is settable only through `CreateUserInput` / `UpdateUserInput`
+  — admin operations, not member self-service.
+
+We could have shipped the entry screen alone, but its own sub-line promises "We'll
+text a code to verify it", and rewording that to hide the missing half would leave
+a feature that looks finished and never gets revisited. So both screens are here
+instead.
+
+**What we need:** an operation a signed-in member can call to send a code to a
+new number, and one to verify it — setting `phoneVerifiedAt` on success. Also
+worth confirming the code length; sign-in codes are 4 digits but the design says
+6 for this one.
+
+### 2.3 Pronouns — screen 10
+
+The design's personal-details screen collects date of birth, gender **and
+pronouns**. DOB and gender both exist (`updateMyProfile`). Pronouns do not exist
+anywhere: no field on any of the 200+ input types, no type with `pronoun` in the
+name.
+
+We left the input out rather than collect it and drop it on the floor. One
+nullable string on `UpdateMyProfileInput` would do it.
+
+### 2.4 Trial and guest — screens V1–V2, T1–T8, G1–G3
 
 Nothing matching `trial` or `guest`.
 
@@ -162,7 +208,9 @@ Flagging rather than assuming it is known.
 | You give us | We ship |
 |---|---|
 | Countries, incident types, a language, and a case on dev | Home and the call flow verified against real data |
-| Answers to §3 | Token refresh, and registration screens 08–12 |
+| Answers to §3 | Token refresh |
+| Phone send/verify operations (§2.2) | Registration screens 08 and 09 |
+| A pronouns field (§2.3) | The last field of screen 10 |
 | Situation-preference endpoints (§2.1) | The home screen's saved three, as designed |
 | A decision on the guest model (§2.2) | Trial and guest flows scoped |
 | The deep-link contract (§4) | A one-line change, then verified |

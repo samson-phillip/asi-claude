@@ -5,7 +5,7 @@ resolve from inside the code. Separate from
 [backend-gaps.md](backend-gaps.md), which tracks what we need *from other
 people*.
 
-Last updated: 2026-08-12, Phase 4 complete.
+Last updated: 2026-08-13, finish-setup wizard complete.
 
 ---
 
@@ -80,6 +80,19 @@ whoever set the deadline knows that.
   bad moment to be confused.
 - **SMS delivery is built but never exercised.** No dev account has a verified
   phone, so `maskedPhone` is always null and the channel switch never renders.
+- **The finish-setup wizard is skippable at every step, which the design is not.**
+  "Finish later" goes straight to Home. My reasoning: this app gets opened during
+  a police encounter, and a required form standing between a member and an
+  attorney is a worse failure than an incomplete profile. It is a product call
+  and you may want it required instead.
+- **A state picker was added to the address screen**, which the CodePen does not
+  show. The profile carries `subdivisionId`, the screen's own info chip promises
+  "your home jurisdiction", and a US address with no state is incomplete. Shown
+  only when the list resolves.
+- **No age gate.** Date of birth is validated as a real past date, but nothing
+  checks 18+. If membership has a minimum age, someone needs to say so.
+- **Setup completeness is inferred** from DOB + address + PIN, because there is no
+  "onboarding complete" flag. If one appears we should use it instead.
 - **Errors and hang-up are rendered in gold, not red.** The palette forbids the
   red it names and supplies no error colour. This is a real visual compromise on
   the most safety-critical control in the app, and it needs a Blue Sky decision.
