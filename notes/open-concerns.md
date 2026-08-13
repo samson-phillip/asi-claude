@@ -170,3 +170,14 @@ are safe to delete but slow to rebuild, so that is your call.
   `applicationIdSuffix`, so launching `com.app.attorney.shield` silently starts
   an older APK installed under the un-suffixed id. Cost an hour of chasing a
   phantom gateway error. Check `pm list packages | grep attorney` first.
+- **No push notifications.** Screens 22-26 are the in-app centre only. There is
+  no APNs/FCM registration, no device token, and no field in the schema to store
+  one. A real nudge that arrives while the app is closed is a separate piece of
+  work and needs a backend decision first.
+- **"Don't remind me" is per-device.** Nudge state lives in SharedPreferences /
+  UserDefaults because nothing in the schema can hold it, so silencing a nudge on
+  one phone does not silence it on another.
+- **A stub key that is a prefix of another swallows its request.** `"query User"`
+  matched `query UserDocuments`; `"DocumentFields"` matched the variable
+  `adminDocumentFieldsId`. Twice now. Key stubs on something that cannot be a
+  prefix -- include the trailing `(`.

@@ -54,6 +54,7 @@ emergency.
 | B5 | No trial or guest operations | HIGH | 13 screens (V1–V2, T1–T8, G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
 | B7 | No way to change a card in-app | MEDIUM | Screen 33D, and the Update row on 33A |
+| B8 | Notification categories, frequency and `kind` | MEDIUM | Most of screen 26 |
 | C1–C8 | Eight answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
 | D1 | `member-call` takes no authentication | **SECURITY** | — |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
@@ -82,6 +83,7 @@ emergency.
 | Change password | `changePassword` |
 | Language + notification prefs | `updateMyProfile` (`primaryLanguageTag`, `notificationsEnabled`, `marketingOptIn`) |
 | Terms and privacy text | `adminTermsOfServiceList` — four live documents |
+| Notifications | `notificationList`, `unreadNotificationCount`, `markNotificationRead`, `markAllNotificationsRead`, `clearNotifications` |
 | Close account | `deleteMyAccount` |
 
 All of the above are **built and writing to dev.** The Vonage SDK is also proven
@@ -408,6 +410,44 @@ operation a member cannot call. Nothing matching `transcript` exists.
 **We ship the timeline without the link.** Not urgent — but if transcripts are
 coming, we would rather wire the real thing than add a link now.
 
+### B8 — Notification categories, a frequency dial, and what `kind` means · MEDIUM
+
+**The notification chain itself works, and is correctly scoped** — we verified
+create, list, `unreadOnly`, mark one, mark all and clear, and confirmed that
+reading or writing another member's inbox returns `forbidden`. Screens 22, 23,
+24 and 25 are built on it. Thank you; nothing here is blocking.
+
+Screen 26 is the exception. The design has **four category toggles and a
+frequency dial**:
+
+| Design control | Field we could store it in |
+|---|---|
+| Setup reminders | — |
+| Tips & know-your-rights | — |
+| Account & billing | — |
+| Safety-critical (always on) | n/a — nothing to store |
+| How often: Occasionally / Rarely / Off | — |
+
+`UserProfile` has exactly two booleans: `notificationsEnabled` and
+`marketingOptIn`. **We did not map "Tips & know-your-rights" onto
+`marketingOptIn`.** That flag is a marketing-consent record with legal weight,
+and quietly relabelling a consent as a content preference is the kind of thing
+that is discovered during an audit. It is shown as "Marketing emails", which is
+what it is.
+
+**Need:** either per-category booleans and a frequency enum on the profile, or a
+decision that one master switch is the product.
+
+**Also: what is `kind` supposed to be?** `createNotification` accepted a `kind`
+of `"totally-made-up-kind"` without complaint. We carry it through and group
+loosely rather than switching on it — the document-field `type` already taught
+us what guessing costs (A6) — but we would rather render the right icon and
+grouping than a generic one.
+
+**One more, small:** `createNotification` is callable by a member for their own
+inbox. Correctly scoped (other users are refused), so it is not a hole — just
+odd, and worth a look in case it was meant to be admin-only.
+
 ### B7 — A member cannot change their card in the app · MEDIUM · blocks 33D
 
 Screen 33D lets a member edit the expiry and billing ZIP inline and replace the
@@ -525,6 +565,7 @@ keystore exists — that part is on us.
 | A4 — a case for the test member | Real jurisdiction and attorney pre-selection |
 | A8 — the attorney behind a call | Attorney names on the Activity timeline |
 | B6 — a transcript | "View transcript" on Test Call entries |
+| B8 — categories + frequency | The rest of screen 26's controls |
 | B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
 | B1 — phone send/verify | Registration screens 08 and 09 |
 | B2 — a pronouns field | The last field of screen 10 |
