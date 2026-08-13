@@ -119,8 +119,11 @@ whoever set the deadline knows that.
   proved text assertions miss layout faults.
 - **No launcher icon or brand shield asset.** The lockup draws a placeholder
   shield in gold.
-- **iOS has no Glovebox yet.** Android is built and verified; the platforms are
-  out of step for the first time in this project. Next thing I pick up.
+- **The iOS file pick is unverified on a device.** The importer presents, but a
+  clean simulator has nothing to pick and seeding a document is not
+  representative. Reading bytes from a security-scoped URL is covered by unit
+  tests and by parity with Android, not by a real pick. One manual pick on a real
+  iPhone would close it.
 - **No camera capture.** The design's document screens show [Camera] [Gallery];
   we ship a document picker, which covers photos and PDFs but not capture.
 - **No in-app document viewer.** "Open" hands the presigned URL to the browser.
