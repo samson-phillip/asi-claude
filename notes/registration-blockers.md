@@ -4,6 +4,10 @@
 **Date:** 2026-08-13
 **Scope:** only the registration and profile-completion journey. Nothing else.
 
+> A narrow subset of [backend-asks.md](backend-asks.md), kept for when only the
+> registration blockers need sending. Both are current; do not edit one without
+> the other.
+
 **Built and writing to dev since the last version:** the profile checklist
 (screen 13), "Set a password" (13A), and the emergency-contact form (16) minus
 its notify-by control.

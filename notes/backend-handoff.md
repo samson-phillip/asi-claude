@@ -1,5 +1,10 @@
 # Attorney Shield 2.0 — What the Native Apps Need from the Backend
 
+> **SUPERSEDED — internal only, do not send.** Replaced by
+> [backend-asks.md](backend-asks.md), which covers the same ground filtered to
+> items the backend can act on, and includes everything found since. Kept for the
+> record because it holds the history of two corrections we had to make.
+
 **From:** mobile (Android + iOS)
 **Date:** 2026-08-13
 
