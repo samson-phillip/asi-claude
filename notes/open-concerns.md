@@ -181,3 +181,9 @@ are safe to delete but slow to rebuild, so that is your call.
   matched `query UserDocuments`; `"DocumentFields"` matched the variable
   `adminDocumentFieldsId`. Twice now. Key stubs on something that cannot be a
   prefix -- include the trailing `(`.
+- **The tour's seen-state is per-device**, like "Don't remind me". A member who
+  installs on a second phone gets the walkthrough again.
+- **The tour dims but does not blur.** The design says "blurs and dims". A real
+  backdrop blur costs a render pass on every frame of a pulsing animation, and
+  the dim plus the gold ring already makes the target unmistakable — but it is a
+  deliberate difference from the reference, not an oversight.

@@ -448,6 +448,13 @@ grouping than a generic one.
 inbox. Correctly scoped (other users are refused), so it is not a hole — just
 odd, and worth a look in case it was meant to be admin-only.
 
+**And a related gap, lowest priority of anything in this document:** there is
+nowhere to store **per-member app state that is not a preference** — whether the
+guided tour has been seen, and whether a member said "don't remind me" to a
+particular nudge. Both live in device storage today, so they do not follow a
+member to a second phone. A single free-form JSON column on the profile would
+cover both and anything like them. Genuinely not urgent.
+
 ### B7 — A member cannot change their card in the app · MEDIUM · blocks 33D
 
 Screen 33D lets a member edit the expiry and billing ZIP inline and replace the
