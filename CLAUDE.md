@@ -105,7 +105,11 @@ Two backends, reached same-origin behind a reverse proxy:
   retryable message, not a crash.
 
 Behaviour worth carrying over verbatim:
-- Routing: send `attorneyId` when the member pre-selected one, **else** `queueId`.
+- Routing: send `attorneyId` when the member pre-selected a chip, **else send
+  neither hint** — auto-match is jurisdiction-wide by default. (Backend S2
+  correction, 2026-08-14: `queueId` is the premium/corporate dedicated-pool
+  path only. The reference `member-client` still sends `queueId`; do **not**
+  copy that here.)
 - Incident-type labels are multilingual — pick English, then the org default
   language, then first available, then a humanized `code`.
 - Location is best-effort: never block placing a call on geolocation.
