@@ -127,20 +127,63 @@ While the code is live, resend is replaced by "You can ask for another code in
 Ns" rather than a disabled button with no explanation. It also stops a member
 burning their hourly allowance on taps.
 
+## Two bugs the device found and the tests did not
+
+Both are the same mistake made twice — formatting a field's *value* while the
+member is typing — and both needed a real caret to show up.
+
+**Android: the digits came out transposed.** Typing "415" put `(451` on screen.
+The brackets lengthen the string without moving the caret, so each new digit
+lands mid-number. Fixed with a `VisualTransformation`: the state stays raw
+digits, only the rendering changes, and an `OffsetMapping` keeps the caret on
+the digit the member is actually on. `PhoneVisualTransformationTest` pins the
+mapping in both directions.
+
+**iOS: nothing formatted at all, and then it ate keystrokes.** The field was
+bound to a computed `Binding` — getter formats, setter stores digits. SwiftUI's
+`TextField` does not re-read a binding it has just written through, so the
+member saw `4155550123` while the model believed it was formatting. Rebinding
+directly and reshaping in `onChange` fixed the display but swallowed input:
+typing "415" left `(4`, because writing to the bound value mid-edit discards the
+keystrokes already in flight. The write is now deferred by one turn and only
+applies if the digits have not moved on since.
+
+The lesson is worth keeping: a text field's formatting cannot be verified from a
+view-model test. Neither platform's unit suite could have caught either of these.
+
+## Verified on device
+
+Both wizards open on **"Step 1 of 5 · Finish setup"** for the test account, whose
+`phoneVerifiedAt` is null. Heading, promise, info chip, the split Code/Mobile
+fields and a disabled Send code all match the design; the number formats to
+`(415) 555-0123` and Send code turns gold.
+
+**Send code was never tapped, on either platform.** `+14155550123` may well be
+someone's number, and the mutation texts it.
+
 ## Test results
 
-**Android — 363 tests, 0 failures.** New: 8 in `PhoneNumberTest`, 11 in
-`SetupViewModelTest`.
+**Android — 368 tests, 0 failures.** New: 8 in `PhoneNumberTest`, 5 in
+`PhoneVisualTransformationTest`, 11 in `SetupViewModelTest`.
 
 Two Android tests are worth noting because the first attempt got them wrong:
 `advanceUntilIdle()` drains the ten-minute countdown, leaving nothing to observe.
 The blocked-resend case uses `advanceTimeBy(1_500)` to sit mid-countdown; the
 elapsed case uses `advanceUntilIdle()` deliberately.
 
-**iOS — see the run recorded below.** The Swift countdown uses real
-`Task.sleep`, so the elapsed case is driven by a response with
-`expiresInSeconds: 0` — which is the state the screen is in once a countdown has
-run out — rather than by waiting ten minutes in a test.
+**iOS — 346 tests, 0 failures.** The Swift countdown uses real `Task.sleep`, so
+the elapsed case is driven by a response with `expiresInSeconds: 0` — which is
+the state the screen is in once a countdown has run out — rather than by waiting
+ten minutes in a test.
+
+The three `DynamicTypeUITests` failures in the same run are the pre-existing ones
+recorded on 2026-08-13: they assume a signed-out simulator and fail whenever a
+session is stored. Not from this work, and still worth fixing.
+
+**One real inversion, caught by its own test.** The first iOS draft read the
+phone state as `(try? await api.getMe(...))?.phoneVerifiedAt != nil`, which
+collapses a failed read and a genuinely unverified number into the same `false` —
+the exact opposite of the rule above. An explicit `do`/`catch` now.
 
 Every pre-existing setup test needed a `phoneVerifiedAt` stub added, since
 `load()` now makes a fourth call. They all describe an account that starts at
