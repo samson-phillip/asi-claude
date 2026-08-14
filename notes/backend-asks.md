@@ -65,7 +65,7 @@ emergency.
 | A7 | `addSubaccount` accepted a bogus `seatPriceID` | ~~DATA~~ | ✅ **SHIPPED — validated on the way in** |
 | A8 | Attorney behind a call | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — `attorneyDisplayName`** |
 | B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 08 and 09 are live** |
-| B2 | No pronouns field | LOW | The last field of screen 10 |
+| B2 | No pronouns field | ~~LOW~~ | ✅ **SHIPPED and BUILT — screen 10 is complete** |
 | B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
 | B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
 | B5 | Converting a trial | ~~HIGH~~ | ✅ **SHIPPED — `convertMyTrial`. Screens not built yet** |
@@ -361,13 +361,17 @@ number, and verify that code, setting `phoneVerifiedAt` on success.
 > "We'll text a code to verify it", and rewording that to hide the missing half
 > would leave a feature that looks finished and never gets revisited.
 
-### B2 — Pronouns · LOW · blocks one field of screen 10
+### ~~B2 — Pronouns~~ · SHIPPED and BUILT
 
-Date of birth and gender are both on `UpdateMyProfileInput`. Pronouns are not, and
-no input type in the schema has a field matching `pronoun`.
+**Closed 2026-08-14.** `pronouns` is on both `UserProfile` and
+`UpdateMyProfileInput`, and screen 10 is complete on both platforms.
 
-**Need:** one nullable string on `UpdateMyProfileInput` (and on `UserProfile` if
-you want it readable).
+Thank you for the field description — "Never derived from `gender`" is exactly
+the rule, and it is now enforced by a test on each platform.
+
+**One small note back:** the field has no length cap. A 300-character value was
+accepted in full. The apps cap at 40, so nothing we send will be long, but
+anything else writing to this field could put a paragraph in it.
 
 ### B3 — Situation preferences · HIGH · blocks screens 13B, 13C, 27B
 
@@ -652,7 +656,7 @@ keystore exists — that part is on us.
 | B6 — a transcript | "View transcript" on Test Call entries |
 | ~~B8 — categories + frequency~~ | ✅ done — screen 26 is complete |
 | B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
-| B2 — a pronouns field | The last field of screen 10 |
+| ~~B2 — a pronouns field~~ | ✅ done — screen 10 is complete |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
 | B4 — notify-by | The last two controls of screen 16 |
 | B5 — a decision on the guest model | Trial and guest scoped, 13 screens |
