@@ -112,15 +112,40 @@ testmanagerd refuses to launch a test runner on a locked device
 ("Unlock … to Continue"). Android's logcat needed no such thing; this is the
 iOS-real-device tax.
 
+## Live verification on the real Android device (Infinix X6886) — done
+
+Same phone location as the iPhone (both in Uganda: tz `Africa/Kampala`, SIM
+country `ug`). A temporary instrumented test (`androidTest`, deleted after
+reading) ran the production `TimeZoneCountry.current()` **on the device**, where
+`android.icu` is the real ICU — the one thing the 429/0 JVM unit suite cannot
+cover, since ICU is stubbed off-device. Logcat:
+
+```
+ASI-LOC-LIVE: tz=Africa/Kampala currentCountry=UG
+```
+
+The instrumented test also `assertEquals("UG", …)` and passed, so ICU's
+`getRegion("Africa/Kampala")` = **`UG`** on real hardware, matching iOS exactly.
+Both platforms now confirmed live to derive the same current country from the
+same device time zone.
+
+Snag worth recording: the whole `androidTest` source set currently fails to
+compile because **`AccessibilityTest.kt` references a removed API**
+(`CompletionItem` / `CompletionItemId`, and an `items:` parameter). That is
+pre-existing and unrelated to `currentCountry`, but it blocks *any*
+`connectedDebugAndroidTest` run. I moved that one file aside to run the probe and
+restored it after — committed nothing in `kotlin`. **The instrumented suite is
+red on `main` until that stale test is updated to the current readiness API.**
+
 ## Open issues / next steps
 
 - **`currentSubdivision`** — deferred (ISO subdivision codes not obtainable from
   the time zone; reverse-geocode gives names). Revisit if the backend needs
   state-level routing and can accept names or a profile-side lookup.
-- **Android** live currentCountry check not run this session — no Android device
-  was attached (the Infinix used for org-heal was unplugged). The Android path
-  is the platform's own ICU `getRegion`, exercised live during the earlier
-  two-way-video runs; worth a one-line logcat confirmation next time the Infinix
-  is connected, for symmetry with the iOS run above.
+- **Instrumented suite red on `main`** — `AccessibilityTest.kt` references a
+  removed readiness API (`CompletionItem` / `CompletionItemId` / `items:`), so
+  `connectedDebugAndroidTest` won't compile until it's updated. Pre-existing,
+  separate from this work; worth its own fix so the on-device suite is runnable
+  again.
 - Server-side confirmation (comms logging the received `currentCountry`) is the
-  only remaining unverified hop, and needs backend log access.
+  only remaining unverified hop on either platform, and needs backend log access.
