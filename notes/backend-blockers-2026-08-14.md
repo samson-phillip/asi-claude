@@ -1,5 +1,18 @@
 # Backend blockers & findings — 2026-08-14
 
+> **UPDATE 2026-08-14 PM — all five fixes verified live, and the call CONNECTED.**
+> Auto-match (no `queueId`, no `attorneyId`) now returns 200 and routes to an
+> online attorney; our app is fixed to send neither hint. Ran the `dev-v0.5.28`
+> desktop as `samson@ainnop.com`, went online without a queue, placed a member
+> auto-match call, and **the attorney console received it, accepted, and opened
+> a live video room** (attorney publishing; "waiting for member"). The only part
+> not shown is a two-way *picture* — the emulator/simulator can't run the video
+> SDK, so the member had no live stream; that needs a physical device, not a
+> backend change. S1 forbidden, S3 supersede screen and `mySessionStatus` both
+> confirmed. Location/country was indeed the factor: US coords matched Samson's
+> US-national coverage. Full detail: `journals/2026-08-14-live-call-connected.md`.
+
+
 Compiled for the backend team. Everything here was verified live against
 `gateway-dev.attorneyshield.io` / `comms-dev.attorneyshield.io` today, with a
 plain **Member** account (`munyira851@gmail.com`, roles `["Member"]`) unless
