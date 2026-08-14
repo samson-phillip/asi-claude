@@ -67,7 +67,7 @@ emergency.
 | B1 | No phone send/verify operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 08 and 09 are live** |
 | B2 | No pronouns field | ~~LOW~~ | ✅ **SHIPPED and BUILT — screen 10 is complete** |
 | B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
-| B4 | No notify-by field on emergency contacts | MEDIUM | Two controls on screen 16 |
+| B4 | No notify-by field on emergency contacts | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — screen 16 is complete** |
 | B5 | Converting a trial | ~~HIGH~~ | ✅ **SHIPPED — `convertMyTrial`. Screens not built yet** |
 | B5a | No guest model | HIGH | 3 screens (G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
@@ -658,7 +658,7 @@ keystore exists — that part is on us.
 | B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
 | ~~B2 — a pronouns field~~ | ✅ done — screen 10 is complete |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
-| B4 — notify-by | The last two controls of screen 16 |
+| ~~B4 — notify-by~~ | ✅ done — screen 16 is complete |
 | B5 — a decision on the guest model | Trial and guest scoped, 13 screens |
 | C2 — token lifetime and rotation | Token refresh, so sessions survive being backgrounded |
 | C1, C3–C8 — the remaining answers | Guesses removed from code we have already shipped |
