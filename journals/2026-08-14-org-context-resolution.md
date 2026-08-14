@@ -98,3 +98,36 @@ jurisdiction.
   `currentSubdivision` (home from profile, current from device timezone — never
   locale). Worth doing as a follow-up.
 - **Live org-heal verification** on a real device, per the backend's step 1.
+
+---
+
+## Live org-heal verification (Infinix X6886) — done
+
+Ran the backend's step 1 on the real Android phone, with a temporary
+`ASI-CTX` debug log in `adopt`/`refreshContext` (added, read, then **reverted**
+— not committed):
+
+**Sign-in:**
+```
+adopt org=6c53e00d… jur=de400000… (me=6c53e00d… case=6c53e00d…)
+```
+Session org = the member's **own** record = `user.organizationID` (`6c53e00d`),
+read from `me`, exactly the invariant.
+
+**Relaunch:**
+```
+refreshContext org=6c53e00d… (was=6c53e00d… me=6c53e00d…)
+```
+`restore()` loaded the session and `refreshContext()` re-resolved — the org
+**stayed** `6c53e00d`. The "must stay equal after relaunch" half holds.
+
+What I could not stage live: a case org that *differs* from the own org, to
+watch the heal flip a wrong value — this member's data no longer diverges
+(their cases are already `6c53e00d`). That exact flip is covered by the unit
+test (`refreshContext heals a stored wrong org`), and the live log proves
+`refreshContext` reads `me` and prefers it, so the two together are conclusive.
+
+Observability note for next time: the session is `EncryptedSharedPreferences`
+(not readable off-device), the app has no org logging, and comms now overrides
+the case org from the JWT — so the resolved org can only be observed live via a
+temporary debug log, which is what this used.
