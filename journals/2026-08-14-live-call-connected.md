@@ -145,3 +145,29 @@ built + unit-tested (8 tests) but not driven live on the simulator; the logic
 and wiring are identical to Android's, which was.
 
 Tests: **Android 424 / 0**, **iOS 402 / 0** (8 new each).
+
+
+## iOS parity check (2026-08-14 PM)
+
+Ran the S3 flow on the iOS simulator headlessly (mcp simulator tools, so it
+didn't touch the user's screen): signed in as `munyira851`, superseded the
+session from elsewhere, backgrounded and foregrounded the app. The
+scenePhase-active poll caught `superseded` and signed out to the login screen
+showing the same notice as Android — *"You're now signed in on another device."*
+Parity confirmed live on both platforms.
+
+## Note on "the call isn't connecting" (main-branch build)
+
+Diagnosed: auto-match returns **409** right now because **no attorney is online**
+(Samson was set offline after the earlier live call). That is the routing change
+behaving correctly — the app surfaces it as a retryable "no attorney available",
+which can read as "not connecting". With the *same* main-branch code and Samson
+online earlier today, the identical call returned 200 and connected. So:
+
+- **A call only connects when an attorney is online** on the desktop (dev-v0.5.28).
+- On a **simulator/emulator the video itself won't render** even when routed —
+  the SDK limit — so the call screen would sit on "connecting". A real device is
+  needed to see live video.
+
+No regression in the routing code; the variable is simply whether an attorney is
+online.
