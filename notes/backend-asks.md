@@ -74,8 +74,8 @@ emergency.
 | B7 | Changing a card in-app | ~~MEDIUM~~ | ✅ **ANSWERED — Stripe SDK; 33D becomes "replace card"** |
 | B8 | Notification categories + frequency | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — screen 26 is complete** |
 | B8b | What `kind` means; somewhere for app state | LOW | Notification icons; tour/nudge state across devices |
-| C1–C7 | Seven answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
-| C8 | An onboarding-complete flag | ~~MEDIUM~~ | ✅ **SHIPPED — `completeMyOnboarding`, `onboardingCompletedAt`** |
+| C1–C7 | ~~Seven answers we were guessing~~ | ~~MEDIUM~~ | ✅ **C2 ANSWERED and BUILT — refresh is wired** |
+| C8 | An onboarding-complete flag | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — routing reads the flag** |
 | D1 | `member-call` took no authentication | ~~SECURITY~~ | ✅ **FIXED both sides — dev now enforces** |
 | E1–E2 | Deep-link contract + domain files (**not the gateway**) | HIGH | Silent web→app handoff |
 
@@ -646,7 +646,7 @@ keystore exists — that part is on us.
 |---|---|
 | ~~B1 — phone send/verify~~ | ✅ done — screens 08 and 09 are built |
 | ~~B3 — situation preferences~~ | ✅ shipped — screens 13B, 13C, 27B are unblocked |
-| ~~C8 — an onboarding flag~~ | ✅ shipped — we can stop inferring completeness |
+| ~~C8 — an onboarding flag~~ | ✅ done — routing reads the flag |
 | ~~A2 — incident types + an English language~~ | ✅ done — Home renders real tiles |
 | ~~A3 — document types + fields~~ | ✅ done — the Glovebox is built and uploading |
 | A5 — member scope on delete | The `✕` on each document tile |
@@ -660,9 +660,53 @@ keystore exists — that part is on us.
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
 | ~~B4 — notify-by~~ | ✅ done — screen 16 is complete |
 | B5 — a decision on the guest model | Trial and guest scoped, 13 screens |
-| C2 — token lifetime and rotation | Token refresh, so sessions survive being backgrounded |
 | C1, C3–C8 — the remaining answers | Guesses removed from code we have already shipped |
 | E1 — the deep-link contract | A one-line change, then verified end to end |
+
+---
+
+## New, from wiring C2 and C8 — 2026-08-14
+
+Two discrepancies between what the schema says and what dev does. Neither blocks
+us; both are the kind of thing that is cheaper to fix now than to discover later.
+
+### `completeMyOnboarding` is not idempotent
+
+Its description says *"Idempotent — calling it again keeps the original
+timestamp."* It does not:
+
+```
+call 1 -> onboardingCompletedAt: 2026-08-14T05:27:56Z
+call 2 -> onboardingCompletedAt: 2026-08-14T05:27:57Z
+```
+
+We guard against re-stamping, so the app will not cause drift. But as written,
+any client that calls it more than once turns "when this member finished setup"
+into "when a client last called this".
+
+### `otherSessionsRevoked: true` does not revoke the other session
+
+Signed in twice as the same member. The second login reported
+`otherSessionsRevoked: true`. With the **first** session's tokens, afterwards:
+
+- its access token still returns `200`
+- its **refresh token still refreshes successfully**
+
+So the older device is not signed out, and because its refresh token keeps
+working it can renew indefinitely — one-device-at-a-time is reported but never
+enforced. We assume this is stateless JWTs plus a session row that nothing
+checks against.
+
+This one is worth a look beyond tidiness: **we show members "Your account was
+opened on another device"** on the strength of that flag, and the product treats
+single-device as a security property. Right now the app is telling members
+something that is not true.
+
+**Also, a small ask that would help us test:** a way to make an access token
+expire early on dev (a short-lived-token switch, or an invalidate endpoint).
+Refresh is wired and unit-tested against a real 401, but we cannot exercise it
+on a device without waiting out the 6-hour lifetime — and revoking a session,
+which would have been the obvious lever, does not invalidate anything.
 
 ---
 
