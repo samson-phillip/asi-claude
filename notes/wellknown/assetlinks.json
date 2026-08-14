@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.app.attorney.shield",
+      "sha256_cert_fingerprints": [
+        "46:52:10:9D:06:58:BE:D0:2E:58:77:EE:E0:45:7B:22:61:CD:36:E5:73:CA:B3:D6:ED:2F:DA:B8:A9:C3:ED:AA",
+        "FF:B0:8C:F9:75:5C:B4:90:B0:8D:15:D8:13:B9:9F:A4:47:00:7B:2A:09:51:DE:79:A6:85:FB:05:F8:AA:7E:16"
+      ]
+    }
+  }
+]

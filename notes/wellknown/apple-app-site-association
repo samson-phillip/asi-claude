@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TWKX78WDP7.com.app.attorney.shield"],
+        "components": [
+          { "/": "/app/return", "comment": "web→app handoff, email prefilled" },
+          { "/": "/return-to-app", "comment": "web→app handoff, email prefilled" },
+          { "/": "/app", "comment": "web→app handoff" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TWKX78WDP7.com.app.attorney.shield"]
+  }
+}
