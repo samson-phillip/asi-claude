@@ -68,7 +68,7 @@ emergency.
 | B2 | No pronouns field | ~~LOW~~ | ✅ **SHIPPED and BUILT — screen 10 is complete** |
 | B3 | No situation-preference operations | ~~HIGH~~ | ✅ **SHIPPED and BUILT — screens 13B, 13C, 27B are live** |
 | B4 | No notify-by field on emergency contacts | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — screen 16 is complete** |
-| B5 | Converting a trial | ~~HIGH~~ | ✅ **SHIPPED — `convertMyTrial`. Screens not built yet** |
+| B5 | Converting a trial | ~~HIGH~~ | ✅ **SHIPPED and BUILT — V2, T5–T8 (the in-app gate) are live** |
 | B5a | No guest model | HIGH | 3 screens (G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
 | B7 | Changing a card in-app | ~~MEDIUM~~ | ✅ **ANSWERED — Stripe SDK; 33D becomes "replace card"** |
