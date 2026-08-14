@@ -10,7 +10,7 @@ design promises "We'll text a code to verify it", and until this week nothing in
 the schema could send or check one — `phoneVerifiedAt` was writable only by the
 admin `updateUser`. Shipping screen 08 alone would have meant rewording the
 design's own promise to hide the missing half, so both went on the backend list
-instead (A2/A3 in `notes/backend-asks.md`).
+instead (B1 in `notes/backend-asks.md`).
 
 The backend's round-2 reply says they landed. This closes them.
 
@@ -25,7 +25,8 @@ The backend's round-2 reply says they landed. This closes them.
 | `feature/setup/SetupViewModel.kt` | Two new steps, the skip rule, the resend countdown. |
 | `feature/setup/SetupScreen.kt` | `PhonePane`, `VerifyPhonePane`. |
 | `MainActivity.kt` | New callbacks wired. |
-| `core/format/PhoneNumberTest.kt`, `feature/setup/SetupViewModelTest.kt` | Tests. |
+| `core/format/PhoneVisualTransformation.kt` | **New.** Formats the field without moving the caret. |
+| `core/format/PhoneNumberTest.kt`, `PhoneVisualTransformationTest.kt`, `feature/setup/SetupViewModelTest.kt` | Tests. |
 
 ### `swift`
 Same shape: `Core/Format/PhoneNumber.swift` (new), `Core/Network/AsiApi.swift`,
@@ -36,7 +37,8 @@ Same shape: `Core/Format/PhoneNumber.swift` (new), `Core/Network/AsiApi.swift`,
 `SetupViewModelTests.swift`.
 
 ### `asi-claude`
-`notes/backend-asks.md` — A2 and A3 marked shipped and built.
+`notes/backend-asks.md` — B1 marked shipped *and built*; the open question on
+it (how many digits?) is answered and struck through.
 
 ## API endpoints used
 
