@@ -491,48 +491,45 @@ are restated below as B8b.
 
 ### B8b — What `kind` means, and somewhere for app state · LOW
 
-**The notification chain itself works, and is correctly scoped** — we verified
-create, list, `unreadOnly`, mark one, mark all and clear, and confirmed that
-reading or writing another member's inbox returns `forbidden`. Screens 22, 23,
-24 and 25 are built on it. Thank you; nothing here is blocking.
+Both halves of this are still open. Neither blocks us; both are cheap now and
+awkward later.
 
-Screen 26 is the exception. The design has **four category toggles and a
-frequency dial**:
+**1. `kind` has no vocabulary, because nothing emits notifications.**
 
-| Design control | Field we could store it in |
-|---|---|
-| Setup reminders | — |
-| Tips & know-your-rights | — |
-| Account & billing | — |
-| Safety-critical (always on) | n/a — nothing to store |
-| How often: Occasionally / Rarely / Off | — |
+`createNotification` still accepts any string — `"totally-made-up-kind"` is
+accepted without complaint. We carry `kind` through and group loosely rather
+than switching on it, because the document-field `type` already taught us what
+guessing costs (A6).
 
-`UserProfile` has exactly two booleans: `notificationsEnabled` and
-`marketingOptIn`. **We did not map "Tips & know-your-rights" onto
-`marketingOptIn`.** That flag is a marketing-consent record with legal weight,
-and quietly relabelling a consent as a content preference is the kind of thing
-that is discovered during an audit. It is shown as "Marketing emails", which is
-what it is.
+Re-checking today made the question sharper: the test member's inbox is
+**empty**, and every notification we have ever seen on dev was one *we* created
+while probing. So there is nothing to reverse-engineer a vocabulary from.
 
-**Need:** either per-category booleans and a frequency enum on the profile, or a
-decision that one master switch is the product.
+The ask is therefore not "what does `kind` mean today" but: **when something
+starts producing notifications, tell us the set of `kind` values it will use.**
+Even three or four (`setup`, `tip`, `billing`, `safety`) would let us render the
+right icon and group the feed the way screen 24 draws it. Until then we render
+one generic treatment, which is honest but plain.
 
-**Also: what is `kind` supposed to be?** `createNotification` accepted a `kind`
-of `"totally-made-up-kind"` without complaint. We carry it through and group
-loosely rather than switching on it — the document-field `type` already taught
-us what guessing costs (A6) — but we would rather render the right icon and
-grouping than a generic one.
+**2. Nowhere to keep per-member app state that is not a preference.**
 
-**One more, small:** `createNotification` is callable by a member for their own
-inbox. Correctly scoped (other users are refused), so it is not a hole — just
-odd, and worth a look in case it was meant to be admin-only.
+Whether the guided tour has been seen, and whether a member said "don't remind
+me" to a particular nudge. Neither is a preference in the screen-26 sense and
+neither belongs on `UserProfile` as a named column. A single free-form JSON
+column — `clientState: String` or similar, member-scoped — would cover both and
+anything like them.
 
-**And a related gap, lowest priority of anything in this document:** there is
-nowhere to store **per-member app state that is not a preference** — whether the
-guided tour has been seen, and whether a member said "don't remind me" to a
-particular nudge. Both live in device storage today, so they do not follow a
-member to a second phone. A single free-form JSON column on the profile would
-cover both and anything like them. Genuinely not urgent.
+Consequence today: **this state does not follow a member to a second phone.**
+Someone who replaces their handset gets the tour again, and gets nudges they had
+already dismissed.
+
+**One thing we fixed on our side while looking at this**, worth mentioning
+because it shows the shape we would want: our stores were keyed per *install*
+rather than per *member*. Since the plan supports family sub-accounts, two
+people sharing a phone is ordinary — and the second to sign in inherited the
+first's tour-seen and dismissed nudges, so a brand-new member got no onboarding
+at all. Keys are now member-scoped, which also means a server-side store would
+be a swap rather than a rewrite.
 
 ### B7 — A member cannot change their card in the app · MEDIUM · blocks 33D
 
