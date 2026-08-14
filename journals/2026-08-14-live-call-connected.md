@@ -107,3 +107,41 @@ message we already have copy for. Logged as the next item.
   emulator/simulator.
 - Desktop `lfr-desktop` is read-only for us — we ran the released `dev-v0.5.28`
   from a tag checkout; nothing committed there.
+
+---
+
+## Follow-up — `mySessionStatus` polling wired (S3), both platforms
+
+The one new item the backend's response put on us. Now done.
+
+**Both apps** now poll `mySessionStatus` on resume (Android `ON_RESUME`, iOS
+`scenePhase == .active`) and every 60s while signed in — the backend's own
+cadence. On `superseded` or `revoked` the session ends with an honest,
+user-facing reason instead of the old bare 401:
+
+> "You're now signed in on another device. Only one device can be active at a
+> time."
+
+carried to the login screen as a notice, email pre-filled.
+
+Design decisions, matched across platforms:
+- **`unknown` never signs anyone out.** An unrecognised status string is treated
+  as active — a backend rename must not lock members out.
+- **Deferred during a call.** A supersede while a call is on screen is not acted
+  on mid-call — the "never mid-emergency" rule and the backend's own guidance
+  ("finish it and sign out when it ends"). The 30-minute grace keeps the token
+  alive; the next poll after the call ends signs out.
+- **A failed status read never signs anyone out.** Only an explicit
+  `superseded`/`revoked` from a *successful* read does; a network blip is
+  ignored.
+
+`AsiApi.getSessionStatus`, a `SessionStatus` enum, `refreshSessionStatus(onCall:)`
+on the session manager, and a `notice` on the login screen — on both platforms.
+
+**Verified live on Android:** signed in on the emulator, superseded the session
+from elsewhere, backgrounded and reopened the app — it signed out to the login
+screen showing the another-device notice, exactly as designed. **iOS** is
+built + unit-tested (8 tests) but not driven live on the simulator; the logic
+and wiring are identical to Android's, which was.
+
+Tests: **Android 424 / 0**, **iOS 402 / 0** (8 new each).
