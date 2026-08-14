@@ -85,10 +85,42 @@ tests; the mapping itself is authoritative ICU and was exercised live on the
 Infinix during the earlier two-way-video runs. The **iOS** table — the part we
 hand-generated and could get wrong — is fully unit-tested.
 
+## Live verification on a real device (Christian's iPhone 14 Pro Max) — done
+
+Ran the real code path on the physical phone via a temporary, uncommitted probe
+test (`LiveCurrentCountryProbe.swift`, deleted after reading — same pattern as
+the org-heal `ASI-CTX` log). The probe read the device's own `TimeZone.current`,
+resolved the country through the production `TimeZoneCountry.current()`, then fed
+it through the **real** `AsiApi.startMemberCall` body-builder and read back the
+sent JSON:
+
+```
+ASI-LOC-LIVE tz=Africa/Kampala currentCountry=UG
+ASI-LOC-LIVE bodyCurrentCountry=UG
+** TEST SUCCEEDED **  (on 'Christian's iPhone')
+```
+
+The whole chain holds on real hardware: device time zone `Africa/Kampala` →
+`TimeZoneCountry.current()` = **`UG`** (from the generated table) → the
+`member-call` body carries `currentCountry=UG`, present and exact (not blank,
+not omitted). That is the client-side end of the contract proven live; the
+server-side half (comms logging what it received) still needs backend log
+access, which we don't have.
+
+Operational note: the run needs the iPhone **unlocked through bootstrap** —
+testmanagerd refuses to launch a test runner on a locked device
+("Unlock … to Continue"). Android's logcat needed no such thing; this is the
+iOS-real-device tax.
+
 ## Open issues / next steps
 
 - **`currentSubdivision`** — deferred (ISO subdivision codes not obtainable from
   the time zone; reverse-geocode gives names). Revisit if the backend needs
   state-level routing and can accept names or a profile-side lookup.
-- Worth a live check next device session: place a call and confirm comms logs
-  the `currentCountry` it received.
+- **Android** live currentCountry check not run this session — no Android device
+  was attached (the Infinix used for org-heal was unplugged). The Android path
+  is the platform's own ICU `getRegion`, exercised live during the earlier
+  two-way-video runs; worth a one-line logcat confirmation next time the Infinix
+  is connected, for symmetry with the iOS run above.
+- Server-side confirmation (comms logging the received `currentCountry`) is the
+  only remaining unverified hop, and needs backend log access.
