@@ -76,6 +76,30 @@ permanently-available dev attorney in queue `4b8e0610-…` for org
 `de200000-…-0001` / jurisdiction `de400000-…-0001`. Then the member app's
 auto-match path is testable.
 
+**Update — ran the real LFR desktop app as an attorney (2026-08-14 PM).** Built
+and launched `lfr-desktop`, logged in, went online, and confirmed via its own
+log that it polls `commsCallsAssignedToAttorney` for the seeded attorney
+`de300000-…020001` (Claire). Findings:
+
+- **Presence is not durable.** `commsUpsertAttorneyPresence(state:"available")`
+  makes a member-call to that attorney return `200` for a short window, but the
+  attorney reverts to unroutable quickly with no heartbeat to keep them up. Some
+  calls to Claire held `ringing` ~25s; others timed out in seconds under
+  identical setup. The routing/availability layer on dev is **non-deterministic**
+  from the client's side.
+- **A discrepancy worth a look:** with a live `ringing` assignment for Claire
+  (confirmed by `commsCallsAssignedToAttorney` returning it for our token), the
+  desktop app's *own* poll of the same query, same token, same attorneyId,
+  returned **empty** — its "Incoming calls" stayed 0. We could not see the
+  desktop's console (production build), and it is read-only for us, so we could
+  not instrument it. Flagging in case the query behaves differently under the
+  attorney client's exact call shape, or there is a scoping rule we are missing.
+
+Net: the **member half** and the **plumbing** are proven (a real Vonage room,
+both parties issued publisher tokens for the same session). A **live two-way
+video call could not be completed on dev** because an attorney cannot be held
+reliably routable long enough to accept — the same root cause as S2.
+
 **Good news within this:** the **pre-selected-attorney** path is now proven end
 to end. `member-call` returns a real room; the Android app drives the whole flow
 (attorney chip → shield → situation → camera/mic permission → call screen →
