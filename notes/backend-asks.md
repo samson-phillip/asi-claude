@@ -72,7 +72,8 @@ emergency.
 | B5a | No guest model | HIGH | 3 screens (G1–G3) |
 | B6 | No member-readable transcript | LOW | "View transcript" on Test Call entries (screen 32) |
 | B7 | Changing a card in-app | ~~MEDIUM~~ | ✅ **ANSWERED — Stripe SDK; 33D becomes "replace card"** |
-| B8 | Notification categories, frequency and `kind` | MEDIUM | Most of screen 26 |
+| B8 | Notification categories + frequency | ~~MEDIUM~~ | ✅ **SHIPPED and BUILT — screen 26 is complete** |
+| B8b | What `kind` means; somewhere for app state | LOW | Notification icons; tour/nudge state across devices |
 | C1–C7 | Seven answers we are currently guessing | MEDIUM | Token refresh, PIN gate, guest design |
 | C8 | An onboarding-complete flag | ~~MEDIUM~~ | ✅ **SHIPPED — `completeMyOnboarding`, `onboardingCompletedAt`** |
 | D1 | `member-call` took no authentication | ~~SECURITY~~ | ✅ **FIXED both sides — dev now enforces** |
@@ -469,7 +470,22 @@ operation a member cannot call. Nothing matching `transcript` exists.
 **We ship the timeline without the link.** Not urgent — but if transcripts are
 coming, we would rather wire the real thing than add a link now.
 
-### B8 — Notification categories, a frequency dial, and what `kind` means · MEDIUM
+### ~~B8 — Notification categories and a frequency dial~~ · SHIPPED and BUILT
+
+**Closed 2026-08-14.** `notifySetupReminders`, `notifyTips`,
+`notifyAccountBilling` and `notificationFrequency` are all live and screen 26 is
+complete on both platforms. The validation on `notificationFrequency` was
+checked rather than trusted, and it holds: a bogus value is rejected, and `OFF`
+is normalised to `off`.
+
+Thank you especially for putting the `marketingOptIn` warning into the field's
+own description — that is the ask coming back as documentation.
+
+**Still open from this item**, both low priority: what `kind` is supposed to
+mean, and somewhere to put per-member app state that is not a preference. Both
+are restated below as B8b.
+
+### B8b — What `kind` means, and somewhere for app state · LOW
 
 **The notification chain itself works, and is correctly scoped** — we verified
 create, list, `unreadOnly`, mark one, mark all and clear, and confirmed that
@@ -634,7 +650,7 @@ keystore exists — that part is on us.
 | A4 — a case for the test member | Real jurisdiction and attorney pre-selection |
 | A8 — the attorney behind a call | Attorney names on the Activity timeline |
 | B6 — a transcript | "View transcript" on Test Call entries |
-| B8 — categories + frequency | The rest of screen 26's controls |
+| ~~B8 — categories + frequency~~ | ✅ done — screen 26 is complete |
 | B7 — a card-update path | Screen 33D and the Update row on Payment & plan |
 | B2 — a pronouns field | The last field of screen 10 |
 | B3 — situation preferences | Screens 13B, 13C and the saved-three row on Home |
