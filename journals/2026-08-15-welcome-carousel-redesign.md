@@ -80,11 +80,57 @@ failure and stayed in-palette.
   and control bar clipped); moving the photo to a clipped `.background` and
   capping the card height fixed it.
 
+## Real shield logo + animated icons — done (both apps)
+
+The user pointed to `code_pen_design.html` for the actual assets. Two additions:
+
+**The brand shield mark.** The reference's wordmark shield (identical paths in
+the `brand-mark` and `intro-shield` SVGs) is a two-tone gold shield with a
+cream/white monogram. No CLI rasteriser was available, so I rendered the SVG to
+a transparent PNG **in the browser** (canvas `toDataURL`, data: URIs are
+canvas-safe), then bundled it — Android `res/drawable-nodpi/brand_shield.png`,
+iOS `Media.xcassets/brand_shield`. It replaces the drawn `ShieldLockup`
+placeholder on both platforms and carries its own colours, so it reads on both
+the navy and cream stages.
+
+- *Snag:* the canvas PNG crashed Android's `painterResource`
+  (`null cannot be cast to BitmapDrawable`) — the raw canvas encoding wasn't
+  something aapt/BitmapFactory accepted. Re-encoding it through `sips` to a clean
+  baseline PNG fixed it. (The JPEG hero was unaffected.)
+
+**The animated incident icons.** Screen 2's icons in the reference are **Lottie
+animations**, built programmatically by a JS builder (`AttorneyShieldLotties`).
+I ran that builder in **Node** to emit the five Lottie JSONs (trafficStop,
+questioned, domestic, trafficAccident, pedestrian — 4–9KB each, two-tone
+navy/gold, 64×64@30fps) and bundled them: Android `res/raw/incident_*`, iOS
+`Resources/Lotties/`. They now play looping in the tiles:
+
+- Android: added `lottie-compose`; `LottieAnimation(RawRes, IterateForever)`.
+- iOS: added `lottie-ios` via SPM (hand-edited the pbxproj to mirror the Vonage
+  package wiring — new stable IDs `…201/202/203`; resolves Lottie 4.6.1);
+  `LottieView(.named).looping()`.
+
+The sixth "All law enforcement-initiated encounters" tile has no Lottie in the
+reference and keeps the static shield.
+
+### Tests & verification (both additions)
+- **Android 429 / 0**; Accessibility + DynamicType green on the emulator.
+- **iOS 411 / 0**.
+- **Screens 1 & 2 re-verified** on emulator + simulator: shield mark in the
+  wordmark, and the animated two-tone icons in the tiles, on both platforms.
+
+## Branch note
+
+`kotlin` is on **`dev`** (a gitflow — main/dev/uat/prod — set up in parallel;
+the welcome work sits on top of a parallel "real graphics" commit, `4927f7e`,
+which it preserved). `swift` and `asi-claude` are on **`main`**. Recommendation
+given to the user: keep kotlin on dev, leave the others on main unless they want
+swift brought onto the same flow.
+
 ## Open / next
 
-- **Real shield logo + animated category icons.** The user provided
-  `code_pen_design.html` with the actual SVGs. Next: swap the drawn `ShieldLockup`
-  placeholder for the reference's two-tone shield mark, and replace the generic
-  category glyphs with the CodePen's own icons. (`hand.raised.fill` is a stand-in
-  for Traffic stop on iOS since `trafficlight` didn't resolve.)
 - **Screens 3–6** await their mockups; they currently render as navy-stage cards.
+- **Reduce-motion**: the Lottie icons loop unconditionally; gating them on the OS
+  reduce-motion setting (as the CodePen does) is a small follow-up.
+- The **intro splash** (`intro-shine` shimmer) is not built — frame 0 isn't a
+  carousel page here.
