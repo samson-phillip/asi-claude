@@ -5,7 +5,7 @@ Running register of what the mobile apps need from the backend.
 **Status key:** BLOCKING = stopped now · HIGH = blocks a phase · LATER = needed,
 not urgent.
 
-Last updated: 2026-08-16, after introspecting the guest-user work (see §9).
+Last updated: 2026-08-16, after wiring guest sign-up (see §9).
 
 ---
 
@@ -196,19 +196,24 @@ exploring) from a member whose **plan lapsed**. Both are unentitled, so
 `membershipEntitlement` alone cannot tell them apart, and they are shown
 different things.
 
-### The gap on our side — one argument
+### The gap on our side — closed 2026-08-16
 
-Both apps already call `verifyLoginOtp(email, code, countryISO2)`. **Neither
-sends `origin`.** Because it defaults to `WEB`, an account created from our
-mobile app is currently stamped **Member Lead, not Guest User** — the wrong
-segment, silently, and unfixable afterwards from the client since `origin` is
-only read at creation.
+Both apps sent `verifyLoginOtp(email, code)` without `origin`. Because it
+defaults to `WEB`, an account created from the mobile app was stamped **Member
+Lead, not Guest User** — the wrong segment, silently, and unfixable afterwards
+from the client since `origin` is only read at creation.
 
-Two things to do, both small:
+**Both are now done:** `origin: APP` is the API-level default on `verifyLoginOtp`
+(every sign-in from this app is from the app, and the gateway ignores it for an
+existing account), and `myAccountStatus` is resolved in the same best-effort pass
+as the profile and cases, then carried on `MemberContext.accountStatus` and
+re-read on refresh so a converted guest stops reading as one.
 
-- send `origin: APP` from `verifyLoginOtp` on both platforms;
-- query `myAccountStatus` after sign-in and keep it on the session, so the app
-  can tell guest from lapsed.
+**Correction to the 2026-08-15 note:** it said both apps already sent
+`countryISO2`. They do not — the *query* declares it, but no call site ever
+populated it, so it has always gone as null. It is still null, deliberately:
+`countryISO2` is stamped as the member's HOME country, which drives products,
+currency and billing, and a device locale is not a home country. See question 6.
 
 ### What this changes for scope
 
@@ -245,3 +250,8 @@ into being on first correct code.
 5. **Are pre-migration accounts being reconciled?** `reconcileMemberStatuses`
    exists; if it has not run over dev, `myAccountStatus` will be null for the
    existing test members and we will be exercising only the fallback path.
+6. **Should the app send `countryISO2` at sign-up?** It is stamped as the
+   member's HOME country and drives products, currency and billing. We can
+   detect a device region, but a device region is not a home country — someone
+   signing up while travelling would be stamped wrong, permanently as far as the
+   client is concerned. We send null until someone rules on it.
