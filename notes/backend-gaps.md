@@ -5,7 +5,7 @@ Running register of what the mobile apps need from the backend.
 **Status key:** BLOCKING = stopped now · HIGH = blocks a phase · LATER = needed,
 not urgent.
 
-Last updated: 2026-08-13, after building the finish-setup wizard.
+Last updated: 2026-08-16, after introspecting the guest-user work (see §9).
 
 ---
 
@@ -112,8 +112,11 @@ listed, so it cannot be forgotten.
 - **Situation preferences** (13B, 13C, 27B). No `situation` / `preference` /
   `favourite` operations. Home shows the full list because there is nowhere to
   store a choice.
-- **Trial and guest** (V1–V2, T1–T8, G1–G3). No `trial` / `guest` operations. Is
-  a guest a real account with a role, or local-only state?
+- ~~**Trial and guest** (V1–V2, T1–T8, G1–G3). No `trial` / `guest`
+  operations. Is a guest a real account with a role, or local-only state?~~
+  **Guest is now answered — see §9 (2026-08-16).** A guest *is* a real account.
+  Trial is still only half-there: `convertMyTrial` ends one, but nothing in the
+  schema *starts* one, so T1–T8 stay listed here.
 
 ### 5. Deep-link contract — HIGH
 
@@ -135,3 +138,110 @@ to a real attorney. Flagged, not designed around.
 
 The palette forbids the red it names and supplies no error colour, but the call
 flow needs an error state and a hang-up control.
+
+---
+
+## 9. Guest users — SHIPPED on dev, and it unblocks self-serve sign-up
+
+Backend message, 2026-08-16: *"i have added guest user implementation. you can
+sign up with a new account and test it in member client."*
+
+Read from the live schema at `gateway-dev.attorneyshield.io/query`. **Not tested
+against a real account** — signing up means creating an account and entering
+credentials, which is not something I do; that step needs a human or a supplied
+test account.
+
+### What actually shipped
+
+There is **no `Guest` type and no separate sign-up mutation.** Guest is a
+*segmentation status* on an ordinary member account, and sign-up is folded into
+the OTP flow we already use.
+
+**1. `verifyLoginOtp` now provisions the account on first verification.**
+
+```graphql
+verifyLoginOtp(
+  email: String!
+  code: String!
+  countryISO2: String
+  origin: SignupOrigin      # NEW
+): LoginPayload!
+```
+
+The gateway's own words: *"On first verification this also PROVISIONS the account
+(member self-serve sign-up)."* So **sign-up is request-code + verify-code** —
+the same two calls as sign-in. There is no separate registration endpoint to
+build.
+
+`enum SignupOrigin { APP, WEB }` records which door a **new** account came
+through and sets its starting status: **`APP` → Guest User**, **`WEB` → Member
+Lead**. It is *ignored for an account that already exists*, so a Member Lead who
+later opens the app keeps the status they were created with. **It defaults to
+`WEB`.**
+
+**2. `myAccountStatus` reads the caller's own segmentation.**
+
+```graphql
+myAccountStatus: MemberStatusRef   # { code: String!, name: String! }
+```
+
+e.g. `guest_user` / `"Guest User"`. Self-scoped — taken from the token, never
+from an argument. **Null** when no status is stored (an account provisioned
+before the segmentation migration, or one the reconcile pass has not reached);
+the gateway's guidance is to treat null as *unknown* and fall back to
+entitlement rather than assuming.
+
+Why it exists, per the schema: it separates a **Guest User** (never purchased,
+exploring) from a member whose **plan lapsed**. Both are unentitled, so
+`membershipEntitlement` alone cannot tell them apart, and they are shown
+different things.
+
+### The gap on our side — one argument
+
+Both apps already call `verifyLoginOtp(email, code, countryISO2)`. **Neither
+sends `origin`.** Because it defaults to `WEB`, an account created from our
+mobile app is currently stamped **Member Lead, not Guest User** — the wrong
+segment, silently, and unfixable afterwards from the client since `origin` is
+only read at creation.
+
+Two things to do, both small:
+
+- send `origin: APP` from `verifyLoginOtp` on both platforms;
+- query `myAccountStatus` after sign-in and keep it on the session, so the app
+  can tell guest from lapsed.
+
+### What this changes for scope
+
+Development plan §3 lists the CodePen sign-up / payment / trial / guest journey
+as **blocked, not merely unbuilt**. That is now partly wrong:
+
+- **Sign-up (G1–G3, and the account-creation half of 08–12): unblocked.** It is
+  the OTP flow with one extra argument.
+- **Trial (T1–T8): still blocked.** `convertMyTrial(organizationID)` *ends* a
+  trial and charges the card; **nothing in the schema starts one.**
+- **Payment: unchanged.** Still web Stripe, still the App Store risk in
+  `open-concerns.md` §1.
+
+Also relevant and already noted in §3 above: the gateway **does not enumerate
+accounts** — an unknown address returns `sent: true` with the address masked
+back. So the app still cannot tell a new email from an existing one *before*
+verification. With self-serve provisioning that is now a feature rather than a
+limitation: one flow serves sign-in and sign-up, and the account simply comes
+into being on first correct code.
+
+### Questions for the backend
+
+1. **Is `origin: APP` the whole story for a mobile guest**, or does anything
+   else need to be stamped at creation?
+2. **What are the status codes?** `statusCodeList` requires a permission members
+   do not hold, so the app cannot enumerate them. We need the list — at minimum
+   which code means guest, which means lapsed, and which means converted — or a
+   member-visible way to read it.
+3. **What may a Guest User actually do?** Specifically: can they place a
+   `member-call`? Entitlement says no, but the product intent for a guest is
+   unclear and it decides what the app shows after sign-up.
+4. **How does a guest convert?** No trial-start operation exists, so the only
+   path visible from the schema is web Stripe and back.
+5. **Are pre-migration accounts being reconciled?** `reconcileMemberStatuses`
+   exists; if it has not run over dev, `myAccountStatus` will be null for the
+   existing test members and we will be exercising only the fallback path.

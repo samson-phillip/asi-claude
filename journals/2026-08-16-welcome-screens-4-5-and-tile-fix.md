@@ -116,23 +116,35 @@ iOS orbit labels truncated ("Cloud reco…") instead of wrapping.
   palette equivalent, and the **sheet body copy clips mid-glyph** on short
   screens (it scrolls, so the text is reachable, but it reads as broken).
 
-## Backend: guest users — NOT started, and one blocker
+## Backend: guest users — API checked, notes updated, still untested
 
 The backend engineer's message, verbatim: *"i have added guest user
 implementation. you can sign up with a new account and test it in member
 client"*.
 
-**I have not tested it, and I cannot do the part as described.** Signing up
-creates an account and enters credentials, which I do not do. That one needs
-you — or an existing test account handed to me.
+**Checked by introspecting the live schema, not by signing up.** Signing up
+creates an account and enters credentials, which I do not do — that step needs
+you, or a test account handed over.
 
-What I *can* do without an account, and would suggest next:
+The finding, written up in full in [backend-gaps.md](../notes/backend-gaps.md)
+§9: there is **no `Guest` type and no separate sign-up mutation.** Guest is a
+*segmentation status* on an ordinary account, and sign-up is folded into the OTP
+flow both apps already use — `verifyLoginOtp` now **provisions the account on
+first verification**, with a new `origin: SignupOrigin` argument where `APP` →
+Guest User and `WEB` → Member Lead. `myAccountStatus` reads the caller's own
+status back, which is what separates a guest (never purchased) from a member
+whose plan lapsed — both are unentitled, so entitlement alone cannot.
 
-1. Read what the gateway now exposes for guests (`member-client/src/lib/api.ts`
-   plus a schema introspection) and write the delta into `notes/backend-gaps.md`.
-2. Say concretely whether it unblocks the guest path in development plan §3,
-   which is currently listed as having no backend at all.
+**One concrete gap on our side:** both apps send `verifyLoginOtp(email, code,
+countryISO2)` but **not** `origin`, and it defaults to `WEB`. So an account
+created from our app today is stamped **Member Lead, not Guest User** — and
+`origin` is only read at creation, so the client cannot fix it afterwards.
 
-Worth knowing: this is potentially significant for scope. §3 records the CodePen
-journey (sign-up / payment / trial / **guest**) as blocked rather than merely
-unbuilt, so if guest is now real, part of that unblocks.
+Scope effect on development plan §3, which lists sign-up / payment / trial /
+guest as *blocked*: **sign-up is unblocked** (it is the OTP flow plus one
+argument), **trial is still blocked** (`convertMyTrial` ends a trial; nothing
+starts one), payment unchanged.
+
+Five questions for the backend are listed at the end of §9 — the important one
+being what a Guest User is actually allowed to do, since that decides what the
+app shows after sign-up.
