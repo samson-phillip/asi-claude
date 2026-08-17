@@ -5,7 +5,8 @@ Running register of what the mobile apps need from the backend.
 **Status key:** BLOCKING = stopped now · HIGH = blocks a phase · LATER = needed,
 not urgent.
 
-Last updated: 2026-08-16, after wiring guest sign-up (see §9).
+Last updated: 2026-08-17, after guest sign-up was confirmed end to end
+against the live gateway (see §9).
 
 ---
 
@@ -234,10 +235,42 @@ verification. With self-serve provisioning that is now a feature rather than a
 limitation: one flow serves sign-in and sign-up, and the account simply comes
 into being on first correct code.
 
+### Confirmed end to end (2026-08-17)
+
+A brand-new email was taken through the app's own OTP flow on iOS, then the
+resulting account was read back by signing into it on Android. The gateway
+returned:
+
+```
+userId=54b146bb-8a39-4394-be82-62d3f7216b03
+roles=[Member]
+accountStatus=guest_user / "Guest User"
+```
+
+So **`origin: APP` does what it was supposed to**: an account created from the
+mobile app is segmented as a Guest User, not a Member Lead. That closes the
+central unknown in this section — everything above was written against the
+schema, and this is the first time it has been observed from the live gateway.
+
+Three things this settles as a side effect:
+
+- **Self-serve sign-up genuinely works from the app.** No web hand-off, no
+  pre-provisioning: the OTP flow creates the account on first correct code.
+- **`myAccountStatus` is readable by a plain member** — it is self-scoped from
+  the token, so unlike `statusCodeList` it needs no elevated permission.
+- **Question 5 is partly answered for new accounts:** a freshly created account
+  is stamped immediately, so the null-status fallback is not being exercised by
+  new sign-ups. Whether *pre-migration* accounts have been reconciled is still
+  unknown.
+
+Note the sign-in code is **4 digits**, not 6.
+
 ### Questions for the backend
 
-1. **Is `origin: APP` the whole story for a mobile guest**, or does anything
-   else need to be stamped at creation?
+1. ~~**Is `origin: APP` the whole story for a mobile guest**, or does anything
+   else need to be stamped at creation?~~ **Answered by observation** — it
+   produces `guest_user`. Still worth a confirmation that nothing *else* ought
+   to be stamped at the same time.
 2. **What are the status codes?** `statusCodeList` requires a permission members
    do not hold, so the app cannot enumerate them. We need the list — at minimum
    which code means guest, which means lapsed, and which means converted — or a
@@ -250,6 +283,8 @@ into being on first correct code.
 5. **Are pre-migration accounts being reconciled?** `reconcileMemberStatuses`
    exists; if it has not run over dev, `myAccountStatus` will be null for the
    existing test members and we will be exercising only the fallback path.
+   *Partly answered:* newly created accounts are stamped at once, so this is
+   now only a question about accounts that predate the migration.
 6. **Should the app send `countryISO2` at sign-up?** It is stamped as the
    member's HOME country and drives products, currency and billing. We can
    detect a device region, but a device region is not a home country — someone
