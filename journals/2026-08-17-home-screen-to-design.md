@@ -82,3 +82,65 @@ reference's middle dot rather than a hyphen.
 
 Guest sign-up confirmation is still outstanding — see the 2026-08-16 addendum.
 `guest_user` has never been observed coming back from the live gateway.
+
+---
+
+## Addendum — tab bar and incident tile icons
+
+Ten glyphs transcribed from the reference, replacing emoji throughout:
+
+| Where | Icons |
+|---|---|
+| Tab bar (`.bn`) | home, glovebox, activity, profile |
+| Incident types | traffic signal, walking figure, car, two figures, handset, plus-in-square |
+
+Emoji were the wrong tool: they render differently on every OS version, carry
+their own colour so they cannot take the accent, and read as decoration rather
+than as part of the brand.
+
+### Where the map lives now
+
+`IncidentIcons` sat in `core/network/AsiConfig` and returned an emoji string.
+It now resolves a **drawable**, so it moved to `core/design/AsiIcons` — the
+network layer has no business knowing about resources. Its three tests moved
+with it and gained a fourth: that the fallback is not silently identical to a
+real tile's icon, which the old emoji map could not have caught because the
+generic shield and no other tile shared a value.
+
+Android gets VectorDrawables; iOS gets SVGs in the asset catalog with template
+rendering, so both tint from the palette. Same reasoning as the hero shield —
+nothing lands in a `.swift` file for the palette guard to trip over.
+
+### Three faults found by looking
+
+- **The bell's unread badge was being shaved off.** It sits proud of the corner,
+  and the container carried the rounded-square clip, so the clip cut it. The
+  clip now belongs to an inner box. Only visible once a badge was actually
+  rendered — the earlier Home capture had `unreadCount = 0`.
+- **Two of the four tab paths were wrong on first transcription.** The profile
+  circle was centred at `cy=4` instead of `cy=8`, and the glovebox rect started
+  at the corner rather than after the radius, which a rounded rect cannot do.
+  Both were caught by rendering, not by review.
+- **Three orphaned drawables** (`ic_incident_car`, `ic_incident_pedestrian`,
+  `ic_incident_questioned`) survive from commit 4927f7e as 48dp screen-2 icons
+  with no references anywhere. Flagged for separate cleanup rather than folded
+  in here; they are *not* the same glyphs as the new 24dp set.
+
+### Tests
+
+| Suite | Result |
+|---|---|
+| Android unit | **433 / 433**, 0 failed (+1 net: 3 emoji tests → 4 icon tests) |
+| Android instrumented | **30 / 30**, 0 failed |
+| iOS unit | **417 / 417**, 0 failed (+4 new) |
+
+Android verified by the held-instrumented-test capture again; iOS verified live
+on the signed-in simulator. Both platforms render identically.
+
+### Still open on Home
+
+- The mockup's three dashed "Add situation" slots vs our full-list fallback —
+  unchanged, and still a product call.
+- `Open your Glovebox` and the routing hint are ours, not the design's.
+- Uploaded `iconFilePath` icons are still unrendered; every tile falls back to
+  the bundled set.
