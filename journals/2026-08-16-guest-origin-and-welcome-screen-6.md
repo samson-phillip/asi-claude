@@ -146,3 +146,60 @@ across two iOS frames.
 - Still open: the **blue stage lift on screen 3** has no palette equivalent, and
   the **sheet body copy clips mid-glyph** on short screens.
 - The reference's **per-icon keyframes on screen 4** remain unbuilt.
+
+---
+
+## Addendum — finish-setup checklist rebuilt to the reference
+
+The progress tracker did not match the design. Assessed against the reference
+(`.ring`, `.chkrow`, `.chkbox`, markup ~8954) and rebuilt on both platforms.
+
+| Element | Reference | Was | Now |
+|---|---|---|---|
+| Progress | 104px conic ring, 80px well, "75%" + "COMPLETE" inside | 6px linear bar under an eyebrow | Ring, matching |
+| Title / subtitle | Centred over the ring | Left-aligned | Centred |
+| Rows | Flat, 10px padding, hairline between, none on the last | Cards: surface fill, full border, 14px padding, 10dp gaps | Flat divided list |
+| Checkbox | 17px **square**, 5px radius | 18dp circle | Square, matching |
+| Row label | 11px, muted | bodyLarge, primary | Muted, smaller |
+| Completed row action | none | dead "Add ›" | none |
+
+**Two of the reference's colours are not ours to take**, resolved per the design
+authority (colour ranks above the CodePen):
+
+- Its row links and skip link are a **mid blue `#2E78C8`** — precisely the
+  blue the colour PDF puts in "avoid" territory. The accent stands in.
+- Its ring green `#2E9E5B` becomes **Verified Green**. Legitimate here: a ring
+  is a graphic, so it clears the 3:1 bar that rules that colour out for text
+  (R4).
+
+`ic_mpw_check` is renamed `ic_check`, now shared by the warranty badge and the
+checklist.
+
+**Item count still differs from the mockup** — it shows five rows, we show eight.
+That is not styling: ours is generated from the real readiness model, which has
+more steps than the illustration. Left as is.
+
+### Verifying the Android render
+
+The Android app was not signed in, so the screen was unreachable by hand. Rather
+than assume parity with iOS, I rendered it from a throwaway instrumented test
+holding the composition on screen and screencapped the device. Both platforms
+confirmed to match. The test was deleted afterwards.
+
+### Two things this turned up
+
+- **A temporary debug log broke five unit tests.** I had added
+  `android.util.Log` to `adopt()` to read the guest status back; `Log` is not
+  mocked in JVM unit tests, so every sign-in test threw. Removed.
+- **`gh` drifted to `samson-mm` again** mid-session and the push failed with
+  "Repository not found" — the same fault recorded in open-concerns §8. The
+  startup checklist catches it; worth knowing it can flip mid-session.
+
+### Guest sign-up: still unconfirmed
+
+The user ran sign-up successfully on **iOS** — "Account created" ticked, session
+live. What is still unverified is that the account came back as `guest_user`,
+which is the whole point of sending `origin: APP`. The debug log was on Android;
+iOS stores the session in the Keychain, which is encrypted even in the simulator
+(checked). Closing it needs either an Android sign-in on the same account (a
+read — `origin` is only consulted at creation) or a server-side check.
