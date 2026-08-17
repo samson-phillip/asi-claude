@@ -285,7 +285,14 @@ Note the sign-in code is **4 digits**, not 6.
    existing test members and we will be exercising only the fallback path.
    *Partly answered:* newly created accounts are stamped at once, so this is
    now only a question about accounts that predate the migration.
-6. **Should the app send `countryISO2` at sign-up?** It is stamped as the
+6. **Does the rebuilt registration flow keep `/choose-plans`?** UAT checkout is
+   `https://uat.attorney-shield.net/choose-plans` (supplied 2026-08-17), but
+   that is the **old** app's plan chooser. Also note the TLD — registration is
+   on attorney-shield.**net**, not the `.com` marketing site.
+7. **Will UAT carry domain-association files?** The apps claim
+   `attorney-shield.com` and `www.attorney-shield.com` only, so a return deep
+   link from UAT checkout cannot open the app today.
+8. **Should the app send `countryISO2` at sign-up?** It is stamped as the
    member's HOME country and drives products, currency and billing. We can
    detect a device region, but a device region is not a home country — someone
    signing up while travelling would be stamped wrong, permanently as far as the
