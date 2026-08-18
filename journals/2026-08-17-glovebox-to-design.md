@@ -87,3 +87,52 @@ section.
 Remaining, in the order a member meets them: **Activity** (32), **Profile** (33)
 and its sub-screens (33A–33D), the **call** surfaces (28–30A), **notifications**
 (24–26), and the **situations picker** (13C).
+
+---
+
+## Addendum — Activity rebuilt to the design (screen 32)
+
+| Element | Reference | Was | Now |
+|---|---|---|---|
+| Structure | One rail, dots straddling it, text alongside | A stack of bordered cards, dot inside each | Rail |
+| Header | Title only | Lockup + title + standfirst | Title only |
+| Dots | 15px, ringed in the page colour, glyph inside | 10–12px plain circles | Ringed, with a glyph |
+
+The lockup and standfirst went with it: the reference's tab screens open on
+their title, the brand sits on Home, and the tab bar is the navigation. Applies
+to the Glovebox and Profile too — the Glovebox keeps its header only because it
+is also reachable from Home's button and needs the Close.
+
+**The dots keep our meaning, not the reference's.** It varies them by event
+*kind* (call, test, joined); ours vary by **outcome**, so a member scanning the
+rail can see which sessions actually connected. Green and gold stay fills with
+the glyph on top — navy on gold, white on green — because neither is legible as
+text on navy.
+
+**"View transcript ›" is not built.** Nothing exposes a transcript, and a link
+that goes nowhere is worse than no link. Same rule as the Camera button and the
+delete control before it.
+
+### The rail exposed the same fault twice in one day
+
+`fillMaxHeight` inside a `verticalScroll` has an infinite constraint, so the rail
+drew nothing at all — the dots rendered and the line between them was simply
+absent. Fixed the same way as the Glovebox watermark: fill a box that takes the
+*parent's resolved* height, which the rows determine.
+
+Worth generalising: **a child cannot size itself to a parent whose height is
+still being decided by that same child's siblings.** Both times the symptom was
+silent — no error, just a missing element in the render.
+
+### Tests
+
+| Suite | Result |
+|---|---|
+| Android unit | **433 / 433**, 0 failed |
+| Android instrumented | **30 / 30**, 0 failed |
+| iOS unit | **421 / 421**, 0 failed |
+
+### Remaining on the polish pass
+
+**Profile** (33) and its sub-screens (33A–33D), the **call** surfaces (28–30A),
+**notifications** (24–26), the **situations picker** (13C).
