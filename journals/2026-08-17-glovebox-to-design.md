@@ -136,3 +136,48 @@ silent — no error, just a missing element in the render.
 
 **Profile** (33) and its sub-screens (33A–33D), the **call** surfaces (28–30A),
 **notifications** (24–26), the **situations picker** (13C).
+
+---
+
+## Addendum — Profile hub rebuilt to the design (screen 33)
+
+| Element | Reference | Was | Now |
+|---|---|---|---|
+| Header | Name centred over an avatar | Lockup, then name left-aligned | Centred over an avatar |
+| Rows | `.mrow` — glyph, label, chevron, hairline | Bordered cards with "Open"/"Manage" | Divided rows |
+| Groups | Account / Protection / More | Same | Same |
+
+`AsiNavRow` **gained** the variant rather than changing: sixteen call sites use
+it, and a sub-pane's rows are separate objects that still want their borders.
+The hub is one list of destinations and now reads as one.
+
+**The avatar's camera badge is left off.** The reference puts a gold camera on
+the avatar for changing the picture; nothing uploads an avatar. Same call as the
+Camera button on the document section, and the delete control before that — the
+rule holds across four screens now.
+
+### Tests
+
+| Suite | Result |
+|---|---|
+| Android unit | **433 / 433**, 0 failed |
+| Android instrumented | **30 / 30**, 0 failed |
+| iOS unit | **421 / 421**, 0 failed |
+
+### The capture loop, third variant
+
+The frame detector rejected the right screen twice more: once because the upper
+bound on "non-background pixels" was tuned to the Activity timeline (sparse) and
+the Profile hub is dense, once because the fixture failed to compile and the run
+never reached the screen at all. Both cost a full build cycle.
+
+The lesson is not to tune thresholds per screen. **Detect the app by a stable
+property** — its background at two known points — and treat pixel counts as a
+lower bound only.
+
+### Remaining on the polish pass
+
+The Profile **sub-screens** (33A payment & plan, 33B family, 33C settings, 33D
+payment method) are unchanged — they use the card form deliberately. The **call**
+surfaces (28–30A), **notifications** (24–26) and the **situations picker** (13C)
+are still to do.
