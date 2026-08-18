@@ -224,3 +224,53 @@ ways: it fails when the name is broken, passes when it is not.
 |---|---|
 | Android unit | **433 / 433**, 0 failed |
 | iOS unit | **422 / 422**, 0 failed (+1: the asset guard) |
+
+---
+
+## Addendum — screen 14 was a missing screen, not a restyle
+
+Shown the CodePen's Glovebox and asked to match it. The screenshot was **screen
+14, "Upload documents"** — the checklist's step — not screen 31, the Glovebox
+tab I had rebuilt. They share their content and differ in frame.
+
+**What the app did:** tapping "Upload your documents" on the checklist navigated
+to the Glovebox **tab**. Same sections, but framed as a destination rather than
+a task: a tab bar, and no way back to the checklist the member came from.
+
+**What it does now:** a `DocumentsStep` destination renders the same screen with
+a "Finish your profile" eyebrow, its own title and subtitle, a card counting
+what is left ("2 more documents to add"), and "Done — back to checklist". One
+flag on the existing screen, not a second copy — the section editor beneath is
+untouched.
+
+The row style needed no change: the reference's `.gdrow` is a bordered card at
+radius 12 with 10px padding, which is what the Glovebox rebuild already
+produced. Worth noting because the flat/divided treatment used on the *profile
+hub* would have been wrong here.
+
+### The checkbox is not built
+
+Screen 14 carries "Mark documents as complete". Nothing in the schema stores a
+per-step completion: `completeMyOnboarding` finishes onboarding as a whole, and
+readiness is derived from whether documents exist. A member who ticked it would
+find the step un-ticked on the next load. Recorded as backend-gaps question 8 —
+either the checkbox is wrong for a derived step, or a flag needs to exist.
+
+That is the fifth control left out for want of a backend, after the delete, the
+Camera button, the avatar camera badge and "View transcript ›".
+
+### An operational note
+
+The machine ran out of disk mid-run — `checkDebugAarMetadata` failed with "no
+space left on device". My own screenshot frames were **160 MB** of it, now
+cleared. The volume is still at 417 GiB of 460 GiB with under a gigabyte free,
+which is not something this session created but will keep breaking builds.
+Sampling frames are now deleted as soon as the useful one is found.
+
+### Tests
+
+| Suite | Result |
+|---|---|
+| Android unit | **433 / 433**, 0 failed |
+| Android instrumented | **30 / 30**, 0 failed |
+| iOS unit | **422 / 422**, 0 failed |

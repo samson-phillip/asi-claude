@@ -303,7 +303,14 @@ Note the sign-in code is **4 digits**, not 6.
    Worth stating plainly for whoever answers: **`member-client` cannot settle
    this.** It has no Register button, no sign-up, and no OTP operations — three
    screens and a password login. There is nothing to copy.
-8. **Should the app send `countryISO2` at sign-up?** It is stamped as the
+8. **Is there a per-step completion flag?** Screen 14 puts a "Mark documents
+   as complete" checkbox on the Upload-documents step, but nothing in the
+   schema stores one. `completeMyOnboarding` finishes onboarding as a whole,
+   and readiness is derived from whether documents actually exist — so a member
+   who ticked the box would find the step un-ticked on the next load. The
+   control is not built. Either the checkbox is wrong for a derived step, or a
+   per-step flag needs to exist.
+9. **Should the app send `countryISO2` at sign-up?** It is stamped as the
    member's HOME country and drives products, currency and billing. We can
    detect a device region, but a device region is not a home country — someone
    signing up while travelling would be stamped wrong, permanently as far as the
