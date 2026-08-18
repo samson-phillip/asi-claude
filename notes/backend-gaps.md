@@ -289,9 +289,20 @@ Note the sign-in code is **4 digits**, not 6.
    `https://uat.attorney-shield.net/choose-plans` (supplied 2026-08-17), but
    that is the **old** app's plan chooser. Also note the TLD — registration is
    on attorney-shield.**net**, not the `.com` marketing site.
-7. **Will UAT carry domain-association files?** The apps claim
-   `attorney-shield.com` and `www.attorney-shield.com` only, so a return deep
-   link from UAT checkout cannot open the app today.
+7. **How is Register supposed to work at all?** This is now the blocking
+   question, not a refinement of it. `https://uat.attorney-shield.net/choose-plans`
+   was supplied on 2026-08-17 and **does not work** — it loaded once on iOS and
+   was unreachable afterwards. So we need, in order:
+   a. a registration URL that actually resolves, for an environment whose
+      accounts the app's gateway (`gateway-dev`) can see;
+   b. what the flow hands back — a deep link, a code, nothing at all;
+   c. whether UAT would carry `/.well-known/` association files, since the apps
+      claim `attorney-shield.com` and `www.attorney-shield.com` only and the
+      deep-link allow-list refuses every other host by design.
+
+   Worth stating plainly for whoever answers: **`member-client` cannot settle
+   this.** It has no Register button, no sign-up, and no OTP operations — three
+   screens and a password login. There is nothing to copy.
 8. **Should the app send `countryISO2` at sign-up?** It is stamped as the
    member's HOME country and drives products, currency and billing. We can
    detect a device region, but a device region is not a home country — someone
