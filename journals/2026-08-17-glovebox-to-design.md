@@ -181,3 +181,46 @@ The Profile **sub-screens** (33A payment & plan, 33B family, 33C settings, 33D
 payment method) are unchanged — they use the card form deliberately. The **call**
 surfaces (28–30A), **notifications** (24–26) and the **situations picker** (13C)
 are still to do.
+
+---
+
+## Addendum — a parity check, and what it caught
+
+Asked whether the polish was going to both platforms. It was: nine paired
+commits today, same order, same subjects, on `kotlin/dev` and `swift/main`. The
+only single-platform commit is the iOS Keychain reset, which Android does not
+need (`allowBackup="false"`, and app data goes with the uninstall).
+
+But comparing the two **asset sets** rather than the commit subjects found a
+real defect.
+
+### The join dot was invisible on iOS
+
+`ActivityScreen` asked for `Image("ic_check")` and no such asset existed, so the
+join-event dot on the timeline rendered nothing at all.
+
+**Nothing caught it.** `Image` with an unknown name is not a compile error and
+not a crash — SwiftUI draws nothing — so the build succeeded and all 421 tests
+passed. Android was verified by looking at the render; iOS only by build and
+tests. That is precisely the gap, and it is the second time today that a missing
+element was silent (the timeline rail was the first).
+
+`AssetCatalogTests` now walks the source for `Image("...")` literals — plain and
+ternary forms — and fails on any name with no imageset behind it. Confirmed both
+ways: it fails when the name is broken, passes when it is not.
+
+### The rest of the drift, and why it is fine
+
+| Asset | State | Verdict |
+|---|---|---|
+| `ic_bell` | Android only | iOS uses the SF Symbol `bell` — platform-native, deliberate |
+| `ic_brand_shield` / `brand_shield_hero` | Same mark, different names | Naming drift only; both render |
+| `ic_incident_car`, `_pedestrian`, `_questioned` | Android only | The orphans already flagged for deletion |
+| `ic_row_support` | Android only, unused | Authored for a row we do not build. **Deleted.** |
+
+### Tests
+
+| Suite | Result |
+|---|---|
+| Android unit | **433 / 433**, 0 failed |
+| iOS unit | **422 / 422**, 0 failed (+1: the asset guard) |
