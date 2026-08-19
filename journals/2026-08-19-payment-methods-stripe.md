@@ -110,9 +110,10 @@ Verified again: Android `testDebugUnitTest` **BUILD SUCCESSFUL**; iOS
 
 ## Open / next
 
-1. **Add-card button + `billingName`** — deferred with Stage 2 / a small follow-up.
-2. **Cardholder shows "Cardholder"** on the graphic until `billingName` is fetched.
-3. **Stage 2 Stripe SDK** — needs the SDK added to both apps and a
+1. **`billingName`** — now fetched (`myPaymentMethods { … billingName }`) into
+   `PaymentCard` and shown as the cardholder on the card graphic, falling back to
+   "Cardholder". **Done.**
+2. **Stage 2 Stripe SDK** — needs the SDK added to both apps and a
    Stripe-configured dev environment (the `stripePublishableKey` must return a key)
    to test add-card.
 3. **Broader reference drift** — `member-client` dev is 193 commits ahead; a lot
