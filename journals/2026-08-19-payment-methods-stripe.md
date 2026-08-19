@@ -82,10 +82,37 @@ watermark+subtitle, Payment & plan) were committed and pushed before starting
 Stripe, so the payment feature builds on a clean base:
 `kotlin be2808e`, `swift eb36ffe`, `asi-claude 0bc4c24`.
 
+## Addendum — the screen pivoted to CodePen 33D's look
+
+Shown the CodePen 33D screenshot again, the ask was to make the app's payment
+screen *look* like it. 33D is the single-card layout: a card graphic, a note,
+and "Replace with a new card". Chosen resolution: **build 33D's look, honestly**
+— keep the pieces that can work, drop the ones that can't.
+
+- The Stage-1b **manager** (multi-card list with make-default / remove) is
+  **replaced** by the 33D single-card screen: a `CardGraphic` (brand, an Active
+  status, •••• last4, cardholder, EXP) + an `AsiInfoChip` + a **Replace with a
+  new card** button. Empty and sub-account states kept.
+- **The inline expiry/ZIP edit + Save is not built** — no `updatePaymentMethod`,
+  no billing-ZIP field, so those would be a Save that cannot save. Left off.
+- **Replace routes to a new `AddCard` pane**, which for now states plainly that
+  card entry isn't in the app yet (Stage 2 fills in the Stripe form). Not a dead
+  button — it opens a real, honest screen.
+- **make-default / remove stay in the API and view model** (`setDefaultPaymentMethod`,
+  `detachPaymentMethod`, `makeDefaultCard`, `removeCard`) for a future multi-card
+  view; the single-card 33D screen just does not surface them.
+- **"Active" and "Default" are green *fills*, never green text (R4)** — a dot
+  plus the word, as the CodePen's green status is not a legible text colour on
+  dark under the palette.
+
+Verified again: Android `testDebugUnitTest` **BUILD SUCCESSFUL**; iOS
+`AccountViewModelTests` **6/6**.
+
 ## Open / next
 
 1. **Add-card button + `billingName`** — deferred with Stage 2 / a small follow-up.
-2. **Stage 2 Stripe SDK** — needs the SDK added to both apps and a
+2. **Cardholder shows "Cardholder"** on the graphic until `billingName` is fetched.
+3. **Stage 2 Stripe SDK** — needs the SDK added to both apps and a
    Stripe-configured dev environment (the `stripePublishableKey` must return a key)
    to test add-card.
 3. **Broader reference drift** — `member-client` dev is 193 commits ahead; a lot
