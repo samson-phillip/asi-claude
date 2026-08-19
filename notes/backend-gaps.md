@@ -306,10 +306,15 @@ Note the sign-in code is **4 digits**, not 6.
 8. **Is there a per-step completion flag?** Screen 14 puts a "Mark documents
    as complete" checkbox on the Upload-documents step, but nothing in the
    schema stores one. `completeMyOnboarding` finishes onboarding as a whole,
-   and readiness is derived from whether documents actually exist — so a member
-   who ticked the box would find the step un-ticked on the next load. The
-   control is not built. Either the checkbox is wrong for a derived step, or a
-   per-step flag needs to exist.
+   and readiness is otherwise derived from whether documents actually exist.
+   The reference is explicit that the step may be marked done on a *partial*
+   upload, so the tick has to survive a reload.
+
+   **Built 2026-08-19, stored on the device** — per member, in the same defaults
+   store as nudge and tour state. That makes it durable on one phone and
+   nothing more: tick it on the phone, open a tablet, and the step is
+   outstanding again. **A per-step flag on the server would close this**;
+   without one the app cannot make the tick mean the same thing twice.
 9. **Should the app send `countryISO2` at sign-up?** It is stamped as the
    member's HOME country and drives products, currency and billing. We can
    detect a device region, but a device region is not a home country — someone
