@@ -79,24 +79,16 @@ answers.
   config path the client should read it from). *(The Stripe mobile SDK itself is our
   dependency to add — not an ask.)*
 
-### B3 — A **dev** registration URL · CodePen 04 "Choose plan" / Register hand-off
+### B3 — A dev registration/plans URL · CodePen 04 "Choose plan" / Register hand-off
 - **The design:** the **Register** button hands off to the web plan/checkout flow
   (CodePen 04–07, the App↔Web handoff).
-- **What we were given:** `https://uat.attorney-shield.net/choose-plans` (supplied
-  2026-08-17). Two problems make it unusable from the app as it ships:
-  1. **Wrong environment.** The app targets **dev** (`gateway-dev` /
-     `comms-dev.attorneyshield.io`), but this URL is **UAT** on a different TLD
-     (`.net`). An account created on UAT is invisible to a dev build, so the
-     hand-back never completes.
-  2. **Wrong path.** `member-client` (the web app that serves this) has no
-     `/choose-plans` route — its public storefront is **`/plans`** (`App.tsx`:
-     *"The public storefront lives at /plans"*). We've corrected the path to
-     `/plans` on our side; the environment we cannot fix ourselves.
+- **What `member-client` tells us:** its public storefront lives at **`/plans`**
+  (`App.tsx`: *"The public storefront lives at /plans"*) and is served same-origin,
+  so it carries no absolute host of its own.
 - **The ask:** please give us the **registration/plans URL for the dev
-  environment** (i.e. where the dev `member-client` storefront is deployed), so a
-  dev build hands members to a page whose account the dev app can then see. If the
-  intent is that the app should target **UAT** instead, tell us and we'll point all
-  hosts (gateway/comms/plans) at UAT together.
+  environment** — where the dev `member-client` storefront is deployed — so a dev
+  build hands members to a page whose account the dev app can then see. We already
+  have the dev gateway/comms hosts; we just need the matching storefront URL.
 
 ---
 
@@ -123,8 +115,8 @@ we are wiring them ourselves and are **not** asking for anything here:
 | A2 | `updatePaymentMethod` (expiry + billing ZIP) | API gap | 33D inline edit (interim shipped without it) |
 | B1 | Seed document types on the test org | Provisioning | 31, 14A–D, upload step |
 | B2 | Enable Stripe + publishable key on the test env | Provisioning | 33D add/replace card |
-| B3 | A **dev** registration/plans URL (the supplied one is UAT + wrong path) | Provisioning | 04 Register hand-off |
+| B3 | A **dev** registration/plans URL for the Register hand-off | Provisioning | 04 Register hand-off |
 
 Only **A1** and **B1** actually block demo-path screens. A2 has a shipped interim; B2
-gates the add-card path only; B3 affects the Register hand-off only (path fixed our
-side; the dev-vs-UAT environment is theirs to resolve).
+gates the add-card path only; B3 supplies the Register hand-off storefront URL for the
+dev environment (the `/plans` path is already handled our side).

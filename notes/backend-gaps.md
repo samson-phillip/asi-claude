@@ -285,20 +285,19 @@ Note the sign-in code is **4 digits**, not 6.
    existing test members and we will be exercising only the fallback path.
    *Partly answered:* newly created accounts are stamped at once, so this is
    now only a question about accounts that predate the migration.
-6. **Does the rebuilt registration flow keep `/choose-plans`?** UAT checkout is
-   `https://uat.attorney-shield.net/choose-plans` (supplied 2026-08-17), but
-   that is the **old** app's plan chooser. Also note the TLD — registration is
-   on attorney-shield.**net**, not the `.com` marketing site.
+6. **Does the rebuilt registration flow keep `/choose-plans`?** The registration
+   URL we were given points at the **old** app's plan chooser; the rebuilt web
+   storefront serves **`/plans`** instead.
 7. **How is Register supposed to work at all?** This is now the blocking
-   question, not a refinement of it. `https://uat.attorney-shield.net/choose-plans`
-   was supplied on 2026-08-17 and **does not work** — it loaded once on iOS and
-   was unreachable afterwards. So we need, in order:
+   question, not a refinement of it. The registration URL we were given does not
+   resolve for our environment — it loaded once on iOS and was unreachable
+   afterwards. So we need, in order:
    a. a registration URL that actually resolves, for an environment whose
       accounts the app's gateway (`gateway-dev`) can see;
    b. what the flow hands back — a deep link, a code, nothing at all;
-   c. whether UAT would carry `/.well-known/` association files, since the apps
-      claim `attorney-shield.com` and `www.attorney-shield.com` only and the
-      deep-link allow-list refuses every other host by design.
+   c. whether that environment would carry `/.well-known/` association files, since
+      the apps claim `attorney-shield.com` and `www.attorney-shield.com` only and
+      the deep-link allow-list refuses every other host by design.
 
    Worth stating plainly for whoever answers: **`member-client` cannot settle
    this.** It has no Register button, no sign-up, and no OTP operations — three
