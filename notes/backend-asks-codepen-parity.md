@@ -11,11 +11,9 @@ Each item below is a place where a **CodePen screen needs a capability that
 the shared repo because the operation isn't there (an *API gap*), or it exists but
 the test environment isn't provisioned for it (a *provisioning* item).
 
-Everything was checked against `member-client/src` directly; file references are
-included so these can be confirmed quickly. The **"Already on us" list at the end**
-records the CodePen features we verified *are* supported in `member-client` and are
-therefore our own work, not requests — so nothing here is something the repo already
-answers.
+Everything was checked against `member-client/src` directly. We've kept this to only
+what needs **your** input; anything the repo already answers we're wiring ourselves
+and have left off.
 
 ---
 
@@ -89,21 +87,6 @@ answers.
   environment** — where the dev `member-client` storefront is deployed — so a dev
   build hands members to a page whose account the dev app can then see. We already
   have the dev gateway/comms hosts; we just need the matching storefront URL.
-
----
-
-## Already on us — verified supported in `member-client`, so NOT requests
-
-We checked these CodePen features against the repo and confirmed the operations exist;
-we are wiring them ourselves and are **not** asking for anything here:
-
-| CodePen screen | Capability | Where it already is in `member-client` |
-|---|---|---|
-| 34 — PIN to end a call | verify the member's PIN | `verifyMemberPin(userId, pin)` — `memberApi.ts:120` |
-| 30A — in-call documents | list the member's own docs mid-call | `listMyDocuments(userId)` — used in `CallScreen.tsx` (#138) |
-| 31 / 14x — glovebox upload | list types + presigned upload | `listDocumentTypes` (`api.ts:1599`), `profileApi.ts:163` |
-| 08–12 — registration steps | phone verify, profile, onboarding | `registrationApi.ts` (`requestPhoneVerification`, `verifyPhone`, `updateMyProfile`, `completeMyOnboarding`) |
-| 33A/33D — cards | list / default / remove | `paymentApi.ts` (`listPaymentMethods`, `setDefaultPaymentMethod`, `detachPaymentMethod`) |
 
 ---
 
