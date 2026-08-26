@@ -62,6 +62,18 @@ environment Accessibility + Screen Recording and I can drive it.
   card + transitions), `AttorneyShieldApp.swift` (root-ZStack overlay; removed the
   `.sheet`; `onEditSituations` animates in).
 
+## Follow-up — soften the selected-tile glow (Android)
+
+A later screenshot showed the *selected* tile's glow reading as a sharp dark
+inner square. Cause: `Modifier.shadow` is a hard elevation shadow, and over the
+tile's translucent gold fill it rendered as a crisp inset rather than the
+reference's soft glow. Fix: dropped `Modifier.shadow` and drew a blurred gold
+round-rect behind the tile via `BlurMaskFilter` (20dp, NORMAL) in `drawBehind`,
+so the chosen tile lifts on a genuinely soft halo. Re-verified on the emulator —
+the sharp square is gone, the glow is soft, and the gold-tinted fill now reads
+cleanly. iOS untouched: SwiftUI `.shadow` is a Core Animation blur and was
+already soft.
+
 ## Note — other sheets
 
 The user observed "the bottom sheets" (plural) don't float. Only 27B is floated
