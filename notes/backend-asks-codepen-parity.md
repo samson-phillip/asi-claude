@@ -107,7 +107,7 @@ and have left off.
 | # | Ask | Type | Blocks (CodePen) |
 |---|---|---|---|
 | A1 | `sessionTranscript` — or a Product decision to drop "View transcript" | API gap / decision | 32 Activity |
-| A2 | `updatePaymentMethod` (expiry + billing ZIP) | API gap | 33D inline edit (interim shipped without it) |
+| A2 | `updatePaymentMethod` (expiry + billing ZIP) | ✅ built by backend + **consumed**: 33D inline-edit now shipped | — |
 | A3 | `sensitive` flag on document fields | API gap | 14A–D masking (read-only view shipped unmasked) |
 | B1 | Seed document types on the test org | Provisioning | 31, 14A–D, upload step |
 | B2 | Enable Stripe + publishable key on the test env | Provisioning | 33D add/replace card |
