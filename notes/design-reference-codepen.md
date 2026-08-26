@@ -1009,6 +1009,11 @@ board, so treat lengths as design-intent ratios rather than iOS points.
   tracking `.14em`; annotation title `13.5px/800`; annotation body `11.5px`, line-height 1.5.
 
 ### Motion
+- Home guardian shield (screen 27) breathes at rest: a gold aura `.gaura` (170px radial gradient)
+  and two rings `.gring.a` (134px) / `.gring.b` (108px, brighter 48% border), all
+  `2.4s ease-in-out infinite alternate`. Aura scales `.88→1.1` / opacity `.55→1`; rings scale
+  `.94→1.06` / opacity `.5→1`. `.gring.b` carries `animation-delay:-1.2s`, so the inner ring
+  breathes half a cycle behind the outer — the two counter-breathe rather than throb in unison.
 - Tour spotlight: the focused element is cloned above a blurred, dimmed body inside `.spotring` —
   a `2px` Gold Highlight ring, `inset:-10px`, radius `26px`, animation `spotpulse 1.6s ease-in-out
   infinite`; small-target variant `inset:-5px`, radius `14px`.
