@@ -50,6 +50,18 @@ and have left off.
   attach flow. That needs nothing from you. This ask is only if Product wants the
   literal inline-edit design.
 
+### A3 — a **"sensitive" flag** on document fields (for masking) · CodePen 14A–14D
+- **The design:** the Glovebox section detail shows sensitive values **masked** in the
+  read-only view — "License number / •••• •••• 4821", "Passport number / •••• 88412" —
+  while ordinary fields ("State", "Expiration") show in full.
+- **What `member-client` has:** no masking anywhere in the document flow, and the field
+  schema (`adminDocumentFieldList` → `DocumentField`) has only `kind`
+  (text / dropdown / file) — nothing marks a field as sensitive.
+- **The gap:** to mask the right fields (and not "State: New York"), we need a
+  **`sensitive: Boolean`** (or a `masked`/`secure` kind) on the document field, set by
+  the admin. Without it the app cannot tell which values to mask, so it currently shows
+  the read-only view **unmasked**. Suggested: `adminDocumentField { … sensitive }`.
+
 ---
 
 ## B. Environment / data provisioning (API exists; the test env isn't set up)
@@ -96,6 +108,7 @@ and have left off.
 |---|---|---|---|
 | A1 | `sessionTranscript` — or a Product decision to drop "View transcript" | API gap / decision | 32 Activity |
 | A2 | `updatePaymentMethod` (expiry + billing ZIP) | API gap | 33D inline edit (interim shipped without it) |
+| A3 | `sensitive` flag on document fields | API gap | 14A–D masking (read-only view shipped unmasked) |
 | B1 | Seed document types on the test org | Provisioning | 31, 14A–D, upload step |
 | B2 | Enable Stripe + publishable key on the test env | Provisioning | 33D add/replace card |
 | B3 | A **dev** registration/plans URL for the Register hand-off | Provisioning | 04 Register hand-off |
