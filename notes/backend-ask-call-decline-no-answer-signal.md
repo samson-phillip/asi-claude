@@ -1,5 +1,14 @@
 # Backend ask — a real-time "declined / no-pickup" signal for the member
 
+> **RESOLVED 2026-08-27 — C1 shipped (comms#81, member-client#128), adopted in
+> both apps.** Backend delivered a `commsMemberCallState(callId)` query *and* a
+> `call-state` Vonage session signal (dev + uat). Reply:
+> `Downloads/2026-08-27-member-call-state-signal.md`. The apps now watch both
+> through one `applyCallState`, act only on `isFinal` (a decline re-rings, it is
+> not an ending), and replaced the 45s relative timer — which the backend flagged
+> as a live defect — with an absolute safety net `max(waitStart+45s,
+> ringExpiresAt+8s)`. See `journals/2026-08-27-c1-member-call-state-watch.md`.
+
 **From:** Mobile (Android + iOS)
 **Date:** 2026-08-27
 **Context:** When the LFR **declines** a call — or simply doesn't pick up — the member
