@@ -112,6 +112,65 @@ we connect, we match the web. Needs Product to pick one.
 
 ---
 
+## 5a. Resolution (2026-08-27) — the three questions, answered by the updated member-client
+
+The updated `member-client` gates all four states client-side, and reading how it
+does it answers the questions above without waiting on the backend. It does **not**
+depend on the backend rejecting an ineligible call — it prevents the call.
+
+- **Q1 (reliable trial signal for a fresh app trial).** member-client's trial gate
+  (`state/trial.tsx` + `lib/trialGate.ts`) does **not** use `myAccountStatus`
+  segmentation at all. It reads `myMembership.status.code` (`isTrialStatus` ==
+  `"trial"`) through a **three-value** `TrialKnowledge` (`trial | not-trial |
+  unknown`) and **fails CLOSED**: `shouldGateLiveCall = knowledge !== "not-trial"`,
+  so a null/unresolved/failed membership read still gates. There is therefore **no
+  need for a synchronous segmentation signal** — an unsegmented fresh trial is
+  gated by the fail-closed default, and the gate's copy switches to "Confirm your
+  membership" for the `unknown` case (a convert on an already-active membership is
+  an idempotent server no-op, so a real member is never double-charged).
+  → *App:* we OR the membership status (`trial`/`trialing`) with the
+  `trial_member` segmentation. member-client's stricter fail-closed-on-unknown is
+  noted as a possible hardening, but our OR already fixes the reported bug.
+- **Q2 (does routing reject an unentitled call?).** Moot for the client: member-client
+  never lets an unentitled non-guest reach the call. It replaces the tiles with a
+  renew/payment card (`!canCall && !isGuest`) or a payment-failed card, and gates
+  guest/trial before `connect()`. So the client fails safe **by construction**,
+  independent of backend behaviour. (Whether the backend *also* rejects server-side
+  is still worth confirming as defence-in-depth, but is no longer blocking.)
+- **Q3 (single "may consult now" truth).** Two layers, both from member-client:
+  `canCall = ent.entitled || statusCode ∈ {active, trial}` decides whether to show
+  the tiles at all; the **live-attorney** gate is `canConnectLive = entitled &&
+  status != trial`, because a trial is entitled but must convert first. So the
+  trial/active difference is purely the V2 gate, not entitlement — confirming a
+  trial reads `entitled = true`.
+
+**All three are answered by the behavioural reference; no backend change is required
+to ship the client gating.** The one remaining backend ask that stands is the
+separate real-time **decline/no-pickup** signal — see
+[`backend-ask-call-decline-no-answer-signal.md`](backend-ask-call-decline-no-answer-signal.md)
+(the ring timeout is the interim; a push signal would be faster than 45s).
+
+## 5b. What is now built (2026-08-27)
+
+Ported member-client's connect-path gating to both apps (`kotlin`, `swift`):
+
+- **Guest** (`guest_user`/`member_lead`, no product) → guest pill + locked tiles +
+  a **guest upsell sheet** on tap. "View pricing plans" hands off to the web
+  checkout (the Welcome screen's existing `planUrl`), since there is no native
+  checkout funnel (dev-plan §3); "Keep exploring" dismisses without leaving Home.
+- **Trial** → the V2 gate (already built), now fired off the corrected signal.
+- **Grace** → a gold "Grace period" pill + a non-blocking "Pay now" card (→ Account,
+  where the card on file lives); the member still connects.
+- **Expired / canceled** → tiles replaced by a "Choose a plan" renew card
+  (→ web checkout); the shield/tile tap is walled off to Account.
+- **Payment failed** (`past_due`, not entitled) → "We couldn't process your payment"
+  card (→ Account).
+- The gate is evidence-based and **fails OPEN**: two failed reads never hide the
+  tiles from a covered member (the ring timeout now catches any stray unroutable
+  call, so fail-open is safe). Everything waits on `accountLoaded` so no state
+  flashes mid-load. Pure logic lives in `HomeUiState` (Kotlin) / `AccountGate`
+  (Swift), each with a unit-test twin.
+
 ## 6. Files (for the fix, when the product call is made)
 
 - `feature/home/HomeViewModel.kt` — `isTrial`, `membership`, and a new
