@@ -88,6 +88,14 @@ left to the subtle fill. Re-verified on the emulator — selected tiles now read
 a gentle gold tint with a soft halo, matching the pen. iOS untouched (its
 `.shadow` is an offset drop shadow that doesn't paint under the face).
 
+## Follow-up 3 (2026-08-27) — bigger icon + label
+
+With the square tiles, the 23dp glyph + 14sp label floated in a lot of empty
+space and read as under-filled. Bumped the icon to 36dp, the label to
+`titleMedium` (17sp bold), and the icon/label gap to 12dp on both platforms
+(iOS: `AsiFont.body(bold)` → `AsiFont.title`). Verified on the emulator; the
+longest labels ("Pedestrian Stop", "Auto Accident") still fit on one line.
+
 ## Note — other sheets
 
 The user observed "the bottom sheets" (plural) don't float. Only 27B is floated
