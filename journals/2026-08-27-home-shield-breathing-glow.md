@@ -45,7 +45,16 @@ visibly breathes.
 iOS mirrors the same values and builds; not visually driven here (sim input
 limitation).
 
+## Follow-up — widen the glow
+
+User confirmed the pulse was now visible and asked to make it wider. Enlarged the
+bloom `186 -> 240dp` (gradient transparent stop `.80 -> .86`; iOS `endRadius
+93 -> 120`) and grew the stage box that holds it `170x150 -> 240x200` so the
+halo spreads wider without clipping at the top or bleeding into the CTA text.
+Re-checked on the emulator — a broad soft gold halo now fills the space around
+the shield and rings.
+
 ## Files
 
-- **kotlin** — `feature/home/HomeScreen.kt` (`ShieldHero` aura).
-- **swift** — `Feature/Home/HomeScreen.swift` (`ShieldHero` aura).
+- **kotlin** — `feature/home/HomeScreen.kt` (`ShieldHero` aura + stage box).
+- **swift** — `Feature/Home/HomeScreen.swift` (`ShieldHero` aura + stage frame).
