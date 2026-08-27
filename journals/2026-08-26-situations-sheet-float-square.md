@@ -74,6 +74,20 @@ the sharp square is gone, the glow is soft, and the gold-tinted fill now reads
 cleanly. iOS untouched: SwiftUI `.shadow` is a Core Animation blur and was
 already soft.
 
+## Follow-up 2 (2026-08-27) — glow was washing the selected fill solid gold
+
+A CodePen-vs-app comparison showed our selected tiles rendering as near-solid
+gold, versus the reference's subtle gold *tint* + soft outer glow. Cause: the
+blurred glow (from Follow-up 1) is drawn behind the whole tile, and the selected
+fill is a translucent wash (`.25 -> .07`), so the bright glow bled straight
+through the face and saturated it. A CSS `box-shadow` only paints *outside* the
+box, which is why the reference stays subtle. Fix (Android): after drawing the
+blurred glow in `drawBehind`, cover the tile's own footprint with the card colour
+(`c.bgSecondary`) so the glow survives only as the outer halo; the interior is
+left to the subtle fill. Re-verified on the emulator — selected tiles now read as
+a gentle gold tint with a soft halo, matching the pen. iOS untouched (its
+`.shadow` is an offset drop shadow that doesn't paint under the face).
+
 ## Note — other sheets
 
 The user observed "the bottom sheets" (plural) don't float. Only 27B is floated
