@@ -98,3 +98,39 @@ disabled/consent flag, ready to switch on the moment it's approved.
 
 Thanks,
 Mobile team
+
+---
+
+## What Innocent sent back (2026-08-31)
+
+**Dev-environment mobile application tokens** received for both platforms
+(`member-ios-dev`, `member-android-dev`). These are the runtime SDK credential —
+**not committed here.** They live out of band (build-time secret / password
+manager); ask the token owner when wiring the SDK. Redacted so source control
+never carries an ingest credential.
+
+**Entity GUIDs** (identifiers, not credentials — used to link the mobile entity
+directly, e.g. in dashboards / workloads):
+
+- iOS — `ODQyMzU2MHxNT0JJTEV8QVBQTElDQVRJT058MTU4OTI3MTA3MA`
+- Android — `ODQyMzU2MHxNT0JJTEV8QVBQTElDQVRJT058MTU4OTI3MTA2OQ`
+
+Reference artifact from Innocent:
+<https://claude.ai/code/artifact/5bab0f10-f2eb-47a6-a78d-a617dfc17a8c>
+
+### Still outstanding
+
+- [ ] **Region** (US / EU) — still needed; it sets the collector endpoint + init
+      call. (The `-NRMA` token suffix implies a standard US account, but confirm.)
+- [ ] **CI upload key** for dSYMs (iOS) / R8 mapping (Android).
+- [ ] **Products** to enable (Mobile APM only vs. + Logs / custom events).
+- [ ] **Data-governance sign-off** (PII scrubbing, consent, store disclosures).
+- [ ] **UAT + prod tokens** — Innocent said he'll provide these later. These are
+      **dev** tokens only; do not ship them to a release build.
+
+> ⚠️ **These are credentials.** They are the low-sensitivity app-side ingest kind
+> (they end up embedded in the shipped binary anyway), but they can still be used
+> to write data into our New Relic account. Prefer injecting them at **build time**
+> (CI secret / xcconfig / `local.properties`) over hardcoding, and keep prod/UAT
+> tokens out of source control entirely. Recorded here as dev-only reference until
+> the integration lands.

@@ -82,6 +82,37 @@ never-mistaken-for-expired) are unchanged and still pass.
 - Kotlin: `./gradlew testDebugUnitTest --tests …HomeViewModelTest` →
   **BUILD SUCCESSFUL**.
 
+## Simulator verification (on-device A/B)
+
+Ran the fixed build on the booted iPhone 16 Pro against the logged-in account.
+A gate-input probe showed that account is a **live, un-converted trial**:
+
+```
+seg=trial_member  membership=trial  ent.entitled=true  ent.status=trial  → isTrial=1
+```
+
+So it can't reproduce the bug directly — for a real trial the modal *should* show
+(Home's "Active · 24/7 coverage" pill keys off `canCall`, so a covered trial shows
+it too; conversion is not implied). The only value that flips after conversion is
+`ent.status` → `active`.
+
+To verify against the actual bug I reproduced the exact post-conversion transient
+behind a DEBUG launch arg (`-ASISimulateConverted`: force `entitlement.status` to
+`active` while membership/segmentation still read trial), then drove the real UI
+via an XCUITest — launch → tap the hero shield → observe which sheet opens — as an
+A/B on the same account, changing only `isTrial`:
+
+| `isTrial` logic | Result on tap |
+|---|---|
+| old OR-logic (bug) | `tray=0 trialModal=1` — trial modal reopens ❌ |
+| entitlement-authoritative (fix) | `tray=1 trialModal=0` — connect tray opens ✅ |
+
+Same simulated converted account both runs; the buggy A-side proves the repro is
+real (not a missed tap) and the fixed B-side shows the modal is gone. All of the
+verification scaffolding (the launch-arg override, the diagnostic `NSLog`, the
+env-dependent UI test) was **removed** afterward; the clean shipping build was
+rebuilt and reinstalled on the sim. Working tree is back to just the committed fix.
+
 ## Note
 
 The segmentation staleness is real but out of scope here — the correct long-term
