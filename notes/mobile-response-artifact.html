@@ -135,7 +135,7 @@
   </div>
 
   <div class="wrap">
-    <p class="lede">Two field names confirmed so #1 and #2 can ship. #3, #6, the Family-members screen and post-registration deep links are built and on <code>dev</code>. #5 is already built too. #4 is with David. Detail — and what we need from you — below.</p>
+    <p class="lede">Update: <b>#1, #2, #5 and the Family screen are now shipped on <code>dev</code></b> — and #1 and #2 needed <b>no new fields</b>, they run off contracts already on the wire. Documents now honour the admin icon and send the device region. Deep links: you <b>confirmed the contract</b> (thank you) — only devops hosting is left, values inline below. #3 and #6 shipped earlier; #4 is with David. Detail — and the few things still on you — below.</p>
 
     <div class="card">
       <div class="card-head">Where each item stands</div>
@@ -147,13 +147,13 @@
           <tbody>
             <tr>
               <td class="item">1 · Sanctions call-block</td>
-              <td><span class="pill hold"><span class="dot"></span>Name confirmed</span></td>
-              <td class="who">You — ship the field</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped</span></td>
+              <td class="who">You — confirm 403 contract</td>
             </tr>
             <tr>
               <td class="item">2 · Financial Status</td>
-              <td><span class="pill hold"><span class="dot"></span>Name confirmed</span></td>
-              <td class="who">You — ships with #1</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped</span></td>
+              <td class="who">Nobody</td>
             </tr>
             <tr>
               <td class="item">3 · Trial → Member signal</td>
@@ -166,9 +166,9 @@
               <td class="who">David — the tier strings</td>
             </tr>
             <tr>
-              <td class="item">5 · Documents</td>
-              <td><span class="pill done"><span class="dot"></span>Built · 1 question</span></td>
-              <td class="who">You — country scoping</td>
+              <td class="item">5 · Documents (icons + country)</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped</span></td>
+              <td class="who">You — confirm icon values</td>
             </tr>
             <tr>
               <td class="item">6 · Gender wire contract</td>
@@ -177,13 +177,13 @@
             </tr>
             <tr>
               <td class="item">Family members (33B)</td>
-              <td><span class="pill done"><span class="dot"></span>Fixed · 1 confirm</span></td>
-              <td class="who">You — one-line confirm</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped · seats + gate</span></td>
+              <td class="who">You — paid-seat source</td>
             </tr>
             <tr>
               <td class="item">Deep links · post-registration</td>
-              <td><span class="pill done"><span class="dot"></span>Built · needs hosting</span></td>
-              <td class="who">You / devops — host + confirm URL</td>
+              <td><span class="pill hold"><span class="dot"></span>Contract confirmed</span></td>
+              <td class="who">devops — host the files</td>
             </tr>
           </tbody>
         </table>
@@ -191,17 +191,17 @@
     </div>
 
     <section>
-      <p class="kicker"><span class="n">01</span> Name confirmed</p>
+      <p class="kicker"><span class="n">01</span> Shipped</p>
       <h2>Sanctions — the “Disable” call-block</h2>
-      <p>Yes to <code class="k">myAccountRestriction</code> returning a <b>nullable reason</b>, not a bare boolean — your reasoning holds: the member is owed <em>something</em>, the message differs by reason, and it grows a second block type later without a schema change. Self-scoped from the token.</p>
-      <p class="muted">On our side we gate on it <b>ahead of</b> the trial / guest / expired checks (sanctions overrides all of them): non-null reason → disable the connect button and show the reason, falling back to “Support is paused on your account — contact support.” when it’s empty.</p>
+      <p><b>No new field needed — member-client already enforces this, and we now mirror it.</b> The block isn’t a pre-call query; it’s the <b>HTTP 403</b> the member-call endpoint already returns for a disabled account, with the reason in the body (member-client’s <code>SanctionedError</code>). We were mapping that 403 onto the <b>401</b> branch — which <em>signs the member out</em> instead of telling them why. Now split: <b>401 → sign back in</b>, <b>403 → show the reason</b> (fallback “This account is currently blocked from requesting legal support.”), terminal, not retryable, <b>no logout</b>. Both platforms, on <code>dev</code>.</p>
+      <p class="muted"><b>One confirm →</b> that the gateway returns <code>403</code> (not 401 / 423) for a Disabled account, with the member-facing reason in the response body (member-client treats it as plain text; so do we).</p>
     </section>
 
     <section>
-      <p class="kicker"><span class="n">02</span> Name confirmed</p>
+      <p class="kicker"><span class="n">02</span> Shipped</p>
       <h2>Financial Status</h2>
-      <p>Yes to <code class="k">myFinancialStatus</code>, same <code>MemberStatusRef</code> shape as <code>myAccountStatus</code>. We’ll key on it directly and stop inferring from <code>entitled</code> + <code>graceUntil</code> — noted especially that <b>canceled ≠ expired</b>, which the inference can’t separate.</p>
-      <p class="muted">Ship #1 and #2 together whenever ready; we’ll wire both the moment they’re on <code>dev</code>.</p>
+      <p><b>Also shipped without a new field.</b> There’s no authenticated <code>myFinancialStatus</code> today — <code>financialStatus</code> lives only on the pre-login <code>purchaseEligibility</code> funnel, which the native apps don’t use. member-client realises the taxonomy for a logged-in member on <code>PaymentAndPlanScreen</code> from the <b>membership <code>statusCode</code></b> it already has — so we do the same: the plan card now shows a precise badge — <b>Active / Trial / Payment overdue / Paused / Canceled / Expired / Grace period</b> — with <b>canceled ≠ expired</b> distinguished (the gap your #141 fixed on web; our card previously showed nothing for a non-covered member). Both platforms, on <code>dev</code>.</p>
+      <p class="muted">If you later expose an authenticated <code>financialStatus</code> on the account/entitlement, keying on it directly is a one-line switch — but nothing’s needed from you for this to work now.</p>
     </section>
 
     <section>
@@ -217,11 +217,11 @@
     </section>
 
     <section>
-      <p class="kicker"><span class="n">05</span> Built · one question</p>
+      <p class="kicker"><span class="n">05</span> Shipped</p>
       <h2>Documents — fields, icons, order</h2>
-      <p>The native apps already render admin document types, fields, the three new fields (<code>state_of_issue</code>, <code>gun_owner</code> as dropdowns; <code>health_conditions</code> as text), their <code>options</code> (we handle both the JSON-string and array shapes), and both <code>sortOrder</code> levels — and we do <b>not</b> swallow a failed load as empty config. So that half is done.</p>
-      <p><b>Icons — decided: we’re keeping the curated local glyphs.</b> We draw a distinct glyph per document type (keyed on its <code>code</code>) and don’t read the admin <code>icon</code> field, deliberately — on <code>dev</code> those values are unreliable (CloudFront URLs mixed with the literal <code>"globe"</code>), and a raw uploaded image clashes with the app’s vector set. Admin icon changes won’t reflect in the native apps by design; if that becomes a requirement, it’s a follow-up on our side and would need real, sized images.</p>
-      <p class="muted"><b>One question →</b> see below on country scoping.</p>
+      <p>Fields, the three new ones (<code>state_of_issue</code>, <code>gun_owner</code> as dropdowns; <code>health_conditions</code> as text), their <code>options</code> (both JSON-string and array shapes) and both <code>sortOrder</code> levels already render, and a failed load is never swallowed as empty config.</p>
+      <p><b>Icons — reversed our earlier call: we now honour the admin <code>icon</code>.</b> Your note that these are <b>Lucide names</b>, not raw images, is what unblocked it — we mirror member-client’s <code>IconValue</code>: an <code>http(s)</code> URL is loaded, a Lucide/Feather name maps to a local glyph (iOS → an SF Symbol; Android → the nearest bundled section glyph), otherwise we fall back to our per-type glyph. Names are normalized the same way (camelCase / snake_case / spaces). <span class="muted">One asymmetry: iOS also renders URL icons natively; Android needs an image loader (Coil) wired before URL icons show — a small follow-up on our side. Lucide-name icons work on both today.</span></p>
+      <p><b>Country scoping — shipped.</b> <code>adminDocumentFieldList</code> now carries the member’s current country (device region), like member-client; fields such as <code>state_of_issue</code> can vary by country. The <b>types</b> list stays global (no country arg), matching the reference. Null region → your global set, exactly as the web client’s <code>code || null</code>.</p>
     </section>
 
     <section>
@@ -234,23 +234,37 @@
       <p class="kicker">Family members · screen 33B</p>
       <h2>Included seats are addable without a seat price</h2>
       <p>Separate from the six — a bug we found and fixed while comparing 33B to member-client. The screen required a <code>seatPriceId</code> to add <em>any</em> sub-account, so a member with only <b>included</b> (free) spots saw “no seat price configured” and no Invite. Matching member-client, a price is required only for <b>additional</b> (beyond-included) seats; included ones send none. Fixed on both platforms — every open included spot now shows the Invite action.</p>
-      <p class="muted"><b>Follow-up:</b> additional / chargeable seats aren’t surfaced yet — our <code>Entitlement</code> has no <code>maxAdditionalSeats</code> / fee, and the seat-price resolution ties into your Finance work. See the confirm below.</p>
+      <p>We also <b>gated the whole screen on <code>isSubaccount</code></b> (you confirmed the field exists): a family <em>child</em> can no longer add or manage members — otherwise a sub-account could invite strangers onto the <b>primary’s</b> plan. They now see a “Managed by the primary account” card instead, and the Family row is hidden from their overview. And we now fetch <code>maxAdditionalSeats</code> / <code>additionalSubaccountFeeCents</code>.</p>
+      <p class="muted"><b>Still open:</b> <b>paid additional seats</b> (beyond the included ones) need a <code>seatPriceId</code>, and we don’t know where it comes from on mobile — member-client resolves it with <code>findSeatProduct</code> over the price catalogue, which ties into your Finance work. See the ask below.</p>
     </section>
 
     <section>
       <p class="kicker">Deep links · post-registration</p>
       <h2>Web → app handoff after checkout</h2>
-      <p>Built and tested on both platforms: a hardened <code>DeepLinkParser</code> (https-only, exact host allow-list, the email is a prefill only — the link carries <b>no authority</b>), iOS <code>onOpenURL</code>, an Android App-Links <code>intent-filter</code> with <code>autoVerify</code> on <code>attorney-shield.com/app</code>, plus a custom-scheme fallback. After checkout the app opens <b>sign-in with the email pre-filled</b>. 17–18 parser tests per platform.</p>
-      <p class="muted">It’s <b>blocked on two things from your side</b> (below) — until then only the weaker custom-scheme fallback opens the app, not a silent Universal / App Link.</p>
+      <p>You <b>confirmed the contract</b> (E1) — <code>/app/return</code>, <code>/return-to-app</code>, <code>/app</code> on <code>attorney-shield.com</code> / <code>www.attorney-shield.com</code>, carrying <code>email</code> and nothing else — “no change needed.” Both parsers already match it exactly (https-only, exact host allow-list, email is a prefill with <b>no authority</b>), plus the custom-scheme fallback. Nothing left in the apps.</p>
+      <p class="muted">(To be clear on domains: the links live on the <b>Webflow</b> site <code>attorney-shield.com</code>, where checkout happens — <b>not</b> <code>attorneyshield.io</code>, which is the gateway/comms infra. So the <code>/.well-known/</code> files below go on <code>attorney-shield.com</code>.)</p>
+      <p>The only thing left is <b>E2 — hosting the association files</b> so the open is silent (no Android disambiguation dialog; iOS Universal Links). You’ve been waiting on our fingerprints + Team ID — here they are (they’re public by design, served at <code>/.well-known/</code>):</p>
+      <div class="tscroll" style="margin-top:14px">
+        <table>
+          <tbody>
+            <tr><td class="item">iOS Team ID</td><td><span class="code">TWKX78WDP7</span></td></tr>
+            <tr><td class="item">App ID (AASA)</td><td><span class="code">TWKX78WDP7.com.app.attorney.shield</span></td></tr>
+            <tr><td class="item">Android package</td><td><span class="code">com.app.attorney.shield</span></td></tr>
+            <tr><td class="item">SHA-256 · app-signing</td><td><span class="code">46:52:10:9D:06:58:BE:D0:2E:58:77:EE:E0:45:7B:22:61:CD:36:E5:73:CA:B3:D6:ED:2F:DA:B8:A9:C3:ED:AA</span></td></tr>
+            <tr><td class="item">SHA-256 · upload key</td><td><span class="code">FF:B0:8C:F9:75:5C:B4:90:B0:8D:15:D8:13:B9:9F:A4:47:00:7B:2A:09:51:DE:79:A6:85:FB:05:F8:AA:7E:16</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:14px">Host <b>both</b> files on <b>both</b> hosts at <code>/.well-known/</code>. AASA must be <code>application/json</code>, <b>no <code>.json</code> extension</b>, no redirect. <code>assetlinks.json</code> lists both fingerprints (belt-and-braces). One check: if Play App Signing is on, confirm the app-signing-key SHA-256 in Play Console matches the first one above; if it differs, add it as a third entry — harmless either way.</p>
     </section>
 
     <div class="ask">
-      <h3>What we need from you</h3>
+      <h3>What’s still on you (short list)</h3>
       <ol>
-        <li><b>Documents — country scoping.</b> member-client calls <code>adminDocumentFieldList</code> with <code>countryISO2</code>; our queries don’t pass a country. With no <code>countryISO2</code>, does the resolver return <em>all</em> active types, or only the global ones? If country-specific types are dropped without it, that’s the “some active types don’t appear” note — say so and we’ll pass the member’s country.</li>
-        <li><b>Family members — the included add.</b> Confirm the gateway accepts an <code>addSubaccount</code> for an <b>included</b> seat with <b>no</b> <code>seatPriceID</code> (member-client already does this). We rely on it, and <code>dev</code> has no seat line configured.</li>
-        <li><b>Deep links — host the association files.</b> Silent web→app opening needs Apple’s <code>apple-app-site-association</code> and Android’s <code>assetlinks.json</code> served from <code>/.well-known/</code> on <code>attorney-shield.com</code>. The values are ready — iOS Team ID <code>TWKX78WDP7</code>, package <code>com.app.attorney.shield</code>, plus the signing SHA-256 fingerprints (in our handoff note). Devops just needs to host them.</li>
-        <li><b>Deep links — the return URL.</b> Confirm the exact path + query param the web uses to hand back after checkout. We accept <code>/app/return</code>, <code>/return-to-app</code>, <code>/app</code> provisionally; a confirmed contract is a one-line change.</li>
+        <li><b>Family — paid additional seats.</b> The one real blocker left here: where does the <code>seatPriceId</code> for a <b>beyond-included</b> seat come from on mobile? member-client resolves it with <code>findSeatProduct</code> over the price catalogue — is that catalogue query the path you want us to take, or will Finance expose a simpler per-plan seat price? Included (free) seats already work end-to-end.</li>
+        <li><b>Deep links — host the two files (devops).</b> The fingerprints + Team ID are in the table above; the ready-to-host <code>apple-app-site-association</code> and <code>assetlinks.json</code> are in our repo. That’s the whole handoff — just serve them on both hosts at <code>/.well-known/</code>.</li>
+        <li><b>Sanctions — confirm the 403 shape.</b> That the member-call endpoint returns <code>403</code> (not 401 / 423) for a Disabled account, with the member-facing reason in the response body.</li>
+        <li><b>Documents — icon values (nice-to-have).</b> Confirm the admin <code>icon</code> values are Lucide names (<code>car</code>, <code>id-card</code>, <code>shield</code>, <code>globe</code>) and/or image URLs — we honour both; a bare emoji falls back to our own glyph.</li>
       </ol>
     </div>
 
