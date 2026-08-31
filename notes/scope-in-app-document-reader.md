@@ -1,6 +1,10 @@
 # Scope — in-app document reader (Glovebox)
 
-**Status:** scoping only, awaiting go/no-go on the Android approach.
+**Status: BUILT (Option A), both platforms, on `dev` (2026-09-01).** iOS
+QuickLook + Android in-app PdfRenderer/zoomable-image, both kinds, external
+fallback for `unknown`. See `journals/2026-09-01-in-app-document-reader.md`. The
+one deferral from Option A: Android PDF pages are sharp fit-to-width + vertical
+scroll (no pinch-zoom on PDF yet); images are pinch-zoom. Original scope below.
 **Parity driver:** member-client `b24f599` added an in-app `DocumentViewer`,
 replacing `window.open(presignedUrl)` — it calls the old behaviour *"a one-way
 trip out of the Glove Box."* Both our apps still do that old thing.
