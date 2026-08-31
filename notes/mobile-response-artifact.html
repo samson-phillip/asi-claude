@@ -135,7 +135,7 @@
   </div>
 
   <div class="wrap">
-    <p class="lede">Two field names confirmed so #1 and #2 can ship. #3, #6, and the Family-members screen are fixed and on <code>dev</code>. #5 is already built on our side — one country question left. #4 is with David. Detail and the two open questions below.</p>
+    <p class="lede">Two field names confirmed so #1 and #2 can ship. #3, #6, the Family-members screen and post-registration deep links are built and on <code>dev</code>. #5 is already built too. #4 is with David. Detail — and what we need from you — below.</p>
 
     <div class="card">
       <div class="card-head">Where each item stands</div>
@@ -179,6 +179,11 @@
               <td class="item">Family members (33B)</td>
               <td><span class="pill done"><span class="dot"></span>Fixed · 1 confirm</span></td>
               <td class="who">You — one-line confirm</td>
+            </tr>
+            <tr>
+              <td class="item">Deep links · post-registration</td>
+              <td><span class="pill done"><span class="dot"></span>Built · needs hosting</span></td>
+              <td class="who">You / devops — host + confirm URL</td>
             </tr>
           </tbody>
         </table>
@@ -232,11 +237,20 @@
       <p class="muted"><b>Follow-up:</b> additional / chargeable seats aren’t surfaced yet — our <code>Entitlement</code> has no <code>maxAdditionalSeats</code> / fee, and the seat-price resolution ties into your Finance work. See the confirm below.</p>
     </section>
 
+    <section>
+      <p class="kicker">Deep links · post-registration</p>
+      <h2>Web → app handoff after checkout</h2>
+      <p>Built and tested on both platforms: a hardened <code>DeepLinkParser</code> (https-only, exact host allow-list, the email is a prefill only — the link carries <b>no authority</b>), iOS <code>onOpenURL</code>, an Android App-Links <code>intent-filter</code> with <code>autoVerify</code> on <code>attorney-shield.com/app</code>, plus a custom-scheme fallback. After checkout the app opens <b>sign-in with the email pre-filled</b>. 17–18 parser tests per platform.</p>
+      <p class="muted">It’s <b>blocked on two things from your side</b> (below) — until then only the weaker custom-scheme fallback opens the app, not a silent Universal / App Link.</p>
+    </section>
+
     <div class="ask">
-      <h3>Two things we need from you</h3>
+      <h3>What we need from you</h3>
       <ol>
         <li><b>Documents — country scoping.</b> member-client calls <code>adminDocumentFieldList</code> with <code>countryISO2</code>; our queries don’t pass a country. With no <code>countryISO2</code>, does the resolver return <em>all</em> active types, or only the global ones? If country-specific types are dropped without it, that’s the “some active types don’t appear” note — say so and we’ll pass the member’s country.</li>
         <li><b>Family members — the included add.</b> Confirm the gateway accepts an <code>addSubaccount</code> for an <b>included</b> seat with <b>no</b> <code>seatPriceID</code> (member-client already does this). We rely on it, and <code>dev</code> has no seat line configured.</li>
+        <li><b>Deep links — host the association files.</b> Silent web→app opening needs Apple’s <code>apple-app-site-association</code> and Android’s <code>assetlinks.json</code> served from <code>/.well-known/</code> on <code>attorney-shield.com</code>. The values are ready — iOS Team ID <code>TWKX78WDP7</code>, package <code>com.app.attorney.shield</code>, plus the signing SHA-256 fingerprints (in our handoff note). Devops just needs to host them.</li>
+        <li><b>Deep links — the return URL.</b> Confirm the exact path + query param the web uses to hand back after checkout. We accept <code>/app/return</code>, <code>/return-to-app</code>, <code>/app</code> provisionally; a confirmed contract is a one-line change.</li>
       </ol>
     </div>
 
