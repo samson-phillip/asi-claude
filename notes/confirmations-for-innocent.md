@@ -42,17 +42,16 @@ text), their `options` (we handle both the JSON-string and array shapes), and bo
 `sortOrder` levels — and we do **not** swallow a failed load as empty config. So
 that half is done on our side.
 
-Two points before we call #5 closed:
+One point before we call #5 closed, and one decision:
 
-1. **Icons — a decision, not a bug.** We currently draw a curated local glyph per
-   document type (keyed on its `code`), and deliberately ignore the admin `icon`
-   field — because on dev those values are unreliable (a mix of CloudFront URLs
-   and the literal string `"globe"`), so honouring them would show broken/placeholder
-   marks and a raw uploaded image also clashes with the app's vector icon set.
-   **Question:** do you want the app to render the admin-uploaded `icon` URL
-   (we'd add a remote-image path with a fallback to the local glyph), or keep the
-   curated local glyphs? If the former, we need the admin icons to be real, sized
-   images rather than placeholders.
+1. **Icons — decided: we're keeping the curated local glyphs.** The app draws a
+   distinct local glyph per document type (keyed on its `code`) and does not read
+   the admin `icon` field, deliberately — on dev those values are unreliable (a mix
+   of CloudFront URLs and the literal string `"globe"`), and a raw uploaded image
+   would clash with the app's vector icon set. So admin icon changes will not
+   reflect in the native apps by design. If honouring admin-uploaded icons becomes
+   a requirement later, that's a follow-up on our side (a remote-image path with a
+   local fallback) and would need the admin icons to be real, sized images.
 
 2. **Country scoping.** member-client calls `adminDocumentFieldList` with
    `countryISO2`. Our two queries (`adminDocumentTypeList` + per-type
