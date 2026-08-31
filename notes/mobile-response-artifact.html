@@ -1,0 +1,247 @@
+<title>Mobile team — response to the backend review</title>
+<style>
+  :root {
+    --paper: #f5f6f8;
+    --surface: #ffffff;
+    --ink: #0d1b2e;        /* Shield Navy */
+    --muted: #5c6b80;      /* Steel */
+    --hair: #e4e7ec;
+    --gold: #b07a08;       /* deep Justice Gold, readable on light */
+    --gold-soft: #f3ead4;
+    --done: #2e7a57;       /* shipped / built */
+    --wait: #b07a08;       /* waiting on someone */
+    --hold: #3e5170;       /* confirmed, ready to ship */
+    --sans: -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+
+  .page {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 88px; }
+
+  /* Header band */
+  .band {
+    background: var(--ink);
+    color: #eaf0f7;
+    border-bottom: 3px solid var(--gold);
+  }
+  .band .wrap { padding-top: 40px; padding-bottom: 34px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: #c9b78a; margin: 0 0 14px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .shield { width: 15px; height: 17px; flex: none; }
+  h1 {
+    font-size: clamp(27px, 4.6vw, 38px); font-weight: 800; letter-spacing: -.02em;
+    line-height: 1.1; text-wrap: balance; margin: 0 0 12px;
+  }
+  .sub { color: #9fb1c6; font-size: 15px; margin: 0; max-width: 60ch; }
+  .sub b { color: #eaf0f7; font-weight: 600; }
+
+  .lede { color: var(--muted); font-size: 16.5px; margin: 30px 0 4px; max-width: 64ch; }
+
+  /* Status summary */
+  .card {
+    background: var(--surface); border: 1px solid var(--hair);
+    border-radius: 14px; overflow: hidden; margin-top: 26px;
+    box-shadow: 0 1px 2px rgba(13,27,46,.04);
+  }
+  .card-head {
+    padding: 13px 18px; border-bottom: 1px solid var(--hair);
+    font-size: 12px; font-weight: 700; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .tscroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 12px 18px; vertical-align: top; }
+  th {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--hair); white-space: nowrap;
+  }
+  td { border-bottom: 1px solid var(--hair); }
+  tr:last-child td { border-bottom: 0; }
+  td.item { font-weight: 600; white-space: nowrap; }
+  td .code { font-family: var(--mono); font-size: 13px; color: var(--gold); }
+  td.who { color: var(--muted); white-space: nowrap; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    padding: 3px 9px 3px 8px; border-radius: 999px; border: 1px solid;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .pill.done { color: var(--done); border-color: #bfe0cf; background: #eef7f2; }
+  .pill.done .dot { background: var(--done); }
+  .pill.wait { color: var(--wait); border-color: #ecd9a8; background: #fbf4e2; }
+  .pill.wait .dot { background: var(--wait); }
+  .pill.hold { color: var(--hold); border-color: #cdd6e2; background: #eef1f6; }
+  .pill.hold .dot { background: var(--hold); }
+
+  /* Item sections */
+  section { padding-top: 34px; margin-top: 34px; border-top: 1px solid var(--hair); }
+  section:first-of-type { border-top: 0; }
+  .kicker {
+    font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 7px; display: flex; align-items: baseline; gap: 10px;
+  }
+  .kicker .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+  h2 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 10px; text-wrap: balance; }
+  section p { margin: 0 0 12px; max-width: 66ch; }
+  section p:last-child { margin-bottom: 0; }
+  .muted { color: var(--muted); }
+  code {
+    font-family: var(--mono); font-size: .86em;
+    background: #eef1f5; color: #234; padding: 1px 5px; border-radius: 5px;
+    white-space: nowrap;
+  }
+  code.k { color: var(--gold); background: var(--gold-soft); }
+
+  /* Open-questions callout */
+  .ask {
+    background: var(--surface); border: 1px solid var(--hair);
+    border-left: 3px solid var(--gold); border-radius: 12px;
+    padding: 20px 22px; margin-top: 40px;
+  }
+  .ask h3 { margin: 0 0 12px; font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+  .ask ol { margin: 0; padding-left: 20px; }
+  .ask li { margin: 0 0 10px; padding-left: 4px; }
+  .ask li:last-child { margin-bottom: 0; }
+  .ask b { font-weight: 600; }
+
+  footer { margin-top: 40px; color: var(--muted); font-size: 13.5px; }
+  footer a { color: var(--gold); }
+</style>
+
+<div class="page">
+  <div class="band">
+    <div class="wrap">
+      <p class="eyebrow">
+        <svg class="shield" viewBox="0 0 15 17" aria-hidden="true"><path d="M7.5 0 15 2.6v6.1c0 4.3-3 7-7.5 8.3C3 15.7 0 13 0 8.7V2.6L7.5 0Z" fill="#c9a54a"/></svg>
+        Attorney Shield · Mobile ↔ Backend
+      </p>
+      <h1>Mobile team — response to the backend review</h1>
+      <p class="sub">In reply to <b>“Six Asks From Mobile”</b>. Read against the <code style="color:#c9b78a;background:transparent;font-family:var(--mono)">dev</code> branches · updated 31 Aug 2026.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <p class="lede">Two field names confirmed so #1 and #2 can ship. #3, #6, and the Family-members screen are fixed and on <code>dev</code>. #5 is already built on our side — one country question left. #4 is with David. Detail and the two open questions below.</p>
+
+    <div class="card">
+      <div class="card-head">Where each item stands</div>
+      <div class="tscroll">
+        <table>
+          <thead>
+            <tr><th>Item</th><th>State</th><th>Who moves next</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="item">1 · Sanctions call-block</td>
+              <td><span class="pill hold"><span class="dot"></span>Name confirmed</span></td>
+              <td class="who">You — ship the field</td>
+            </tr>
+            <tr>
+              <td class="item">2 · Financial Status</td>
+              <td><span class="pill hold"><span class="dot"></span>Name confirmed</span></td>
+              <td class="who">You — ships with #1</td>
+            </tr>
+            <tr>
+              <td class="item">3 · Trial → Member signal</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped</span></td>
+              <td class="who">Nobody</td>
+            </tr>
+            <tr>
+              <td class="item">4 · Connecting-screen copy</td>
+              <td><span class="pill wait"><span class="dot"></span>Waiting</span></td>
+              <td class="who">David — the tier strings</td>
+            </tr>
+            <tr>
+              <td class="item">5 · Documents</td>
+              <td><span class="pill done"><span class="dot"></span>Built · 1 question</span></td>
+              <td class="who">You — country scoping</td>
+            </tr>
+            <tr>
+              <td class="item">6 · Gender wire contract</td>
+              <td><span class="pill done"><span class="dot"></span>Fixed on read</span></td>
+              <td class="who">Nobody</td>
+            </tr>
+            <tr>
+              <td class="item">Family members (33B)</td>
+              <td><span class="pill done"><span class="dot"></span>Fixed · 1 confirm</span></td>
+              <td class="who">You — one-line confirm</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <section>
+      <p class="kicker"><span class="n">01</span> Name confirmed</p>
+      <h2>Sanctions — the “Disable” call-block</h2>
+      <p>Yes to <code class="k">myAccountRestriction</code> returning a <b>nullable reason</b>, not a bare boolean — your reasoning holds: the member is owed <em>something</em>, the message differs by reason, and it grows a second block type later without a schema change. Self-scoped from the token.</p>
+      <p class="muted">On our side we gate on it <b>ahead of</b> the trial / guest / expired checks (sanctions overrides all of them): non-null reason → disable the connect button and show the reason, falling back to “Support is paused on your account — contact support.” when it’s empty.</p>
+    </section>
+
+    <section>
+      <p class="kicker"><span class="n">02</span> Name confirmed</p>
+      <h2>Financial Status</h2>
+      <p>Yes to <code class="k">myFinancialStatus</code>, same <code>MemberStatusRef</code> shape as <code>myAccountStatus</code>. We’ll key on it directly and stop inferring from <code>entitled</code> + <code>graceUntil</code> — noted especially that <b>canceled ≠ expired</b>, which the inference can’t separate.</p>
+      <p class="muted">Ship #1 and #2 together whenever ready; we’ll wire both the moment they’re on <code>dev</code>.</p>
+    </section>
+
+    <section>
+      <p class="kicker"><span class="n">03</span> Shipped</p>
+      <h2>Trial → Member conversion signal</h2>
+      <p>Keeping <code>membership.statusCode != "trial"</code>. We’ve shipped the <code>failureReason</code> handling: a <code>failed</code> conversion now shows the decline reason on the charge notice instead of a generic error, and no longer polls as pending. We’ll pick up <code>membershipEntitlement.conversionPending</code> when we next touch the trial cold-load.</p>
+    </section>
+
+    <section>
+      <p class="kicker"><span class="n">04</span> Waiting on David</p>
+      <h2>Connecting-screen &amp; call-timeout messages</h2>
+      <p>Agreed on <b>static admin config</b> — <code>[{ afterSeconds, message }]</code>, fetched and cached, with our hardcoded fallback. We’ll build the read once we have the three strings and the master table. Nothing needed from you or us until David lands the copy.</p>
+    </section>
+
+    <section>
+      <p class="kicker"><span class="n">05</span> Built · one question</p>
+      <h2>Documents — fields, icons, order</h2>
+      <p>The native apps already render admin document types, fields, the three new fields (<code>state_of_issue</code>, <code>gun_owner</code> as dropdowns; <code>health_conditions</code> as text), their <code>options</code> (we handle both the JSON-string and array shapes), and both <code>sortOrder</code> levels — and we do <b>not</b> swallow a failed load as empty config. So that half is done.</p>
+      <p><b>Icons — decided: we’re keeping the curated local glyphs.</b> We draw a distinct glyph per document type (keyed on its <code>code</code>) and don’t read the admin <code>icon</code> field, deliberately — on <code>dev</code> those values are unreliable (CloudFront URLs mixed with the literal <code>"globe"</code>), and a raw uploaded image clashes with the app’s vector set. Admin icon changes won’t reflect in the native apps by design; if that becomes a requirement, it’s a follow-up on our side and would need real, sized images.</p>
+      <p class="muted"><b>One question →</b> see below on country scoping.</p>
+    </section>
+
+    <section>
+      <p class="kicker"><span class="n">06</span> Fixed on read</p>
+      <h2>Gender — the wire contract</h2>
+      <p>Good catch — you were right that narrowing the picker broke <b>reading</b>. We now keep the full five-value enum so a profile holding <code>non_binary</code> or <code>unspecified</code> (the 52 of 70) decodes and <b>displays</b> its value, and offer only Male / Female / Other for <b>input</b>. Fixed on both platforms and on <code>dev</code>. We’re not narrowing the enum — that’s a schema change + migration + a call on the two <code>non_binary</code> rows, which is yours to make deliberately.</p>
+    </section>
+
+    <section>
+      <p class="kicker">Family members · screen 33B</p>
+      <h2>Included seats are addable without a seat price</h2>
+      <p>Separate from the six — a bug we found and fixed while comparing 33B to member-client. The screen required a <code>seatPriceId</code> to add <em>any</em> sub-account, so a member with only <b>included</b> (free) spots saw “no seat price configured” and no Invite. Matching member-client, a price is required only for <b>additional</b> (beyond-included) seats; included ones send none. Fixed on both platforms — every open included spot now shows the Invite action.</p>
+      <p class="muted"><b>Follow-up:</b> additional / chargeable seats aren’t surfaced yet — our <code>Entitlement</code> has no <code>maxAdditionalSeats</code> / fee, and the seat-price resolution ties into your Finance work. See the confirm below.</p>
+    </section>
+
+    <div class="ask">
+      <h3>Two things we need from you</h3>
+      <ol>
+        <li><b>Documents — country scoping.</b> member-client calls <code>adminDocumentFieldList</code> with <code>countryISO2</code>; our queries don’t pass a country. With no <code>countryISO2</code>, does the resolver return <em>all</em> active types, or only the global ones? If country-specific types are dropped without it, that’s the “some active types don’t appear” note — say so and we’ll pass the member’s country.</li>
+        <li><b>Family members — the included add.</b> Confirm the gateway accepts an <code>addSubaccount</code> for an <b>included</b> seat with <b>no</b> <code>seatPriceID</code> (member-client already does this). We rely on it, and <code>dev</code> has no seat line configured.</li>
+      </ol>
+    </div>
+
+    <footer>
+      Mobile team · iOS + Android on <code style="font-family:var(--mono)">dev</code>. This page replaces the exchanged <code style="font-family:var(--mono)">.md</code> files — it updates in place, so check back here rather than a new file.
+    </footer>
+  </div>
+</div>
