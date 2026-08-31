@@ -103,11 +103,19 @@ Mobile team
 
 ## What Innocent sent back (2026-08-31)
 
-**Dev-environment mobile application tokens** received for both platforms
-(`member-ios-dev`, `member-android-dev`). These are the runtime SDK credential —
-**not committed here.** They live out of band (build-time secret / password
-manager); ask the token owner when wiring the SDK. Redacted so source control
-never carries an ingest credential.
+**Mobile application tokens received for all three environments, both platforms**
+— the six runtime SDK credentials, one New Relic app entity per env/platform:
+
+| Env | iOS app | Android app |
+|---|---|---|
+| dev | `member-ios-dev` | `member-android-dev` |
+| uat | `member-ios-uat` | `member-android-uat` |
+| prod | `member-ios-prod` | `member-android-prod` |
+
+The token **values are NOT committed here** — they live out of band (build-time
+secret per environment / password manager); ask the token owner when wiring the
+SDK. Redacted so source control never carries an ingest credential. Wire them so
+the dev/uat/prod build variant each picks up its own token.
 
 **Entity GUIDs** (identifiers, not credentials — used to link the mobile entity
 directly, e.g. in dashboards / workloads):
@@ -125,8 +133,7 @@ Reference artifact from Innocent:
 - [ ] **CI upload key** for dSYMs (iOS) / R8 mapping (Android).
 - [ ] **Products** to enable (Mobile APM only vs. + Logs / custom events).
 - [ ] **Data-governance sign-off** (PII scrubbing, consent, store disclosures).
-- [ ] **UAT + prod tokens** — Innocent said he'll provide these later. These are
-      **dev** tokens only; do not ship them to a release build.
+- [x] **UAT + prod tokens** — received 2026-08-31 (all six, redacted above).
 
 > ⚠️ **These are credentials.** They are the low-sensitivity app-side ingest kind
 > (they end up embedded in the shipped binary anyway), but they can still be used
