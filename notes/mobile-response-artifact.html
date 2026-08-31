@@ -205,9 +205,11 @@
     </section>
 
     <section>
-      <p class="kicker"><span class="n">03</span> Shipped</p>
+      <p class="kicker"><span class="n">03</span> Shipped · one thing left to verify</p>
       <h2>Trial → Member conversion signal</h2>
-      <p>Keeping <code>membership.statusCode != "trial"</code>. We’ve shipped the <code>failureReason</code> handling: a <code>failed</code> conversion now shows the decline reason on the charge notice instead of a generic error, and no longer polls as pending. We’ll pick up <code>membershipEntitlement.conversionPending</code> when we next touch the trial cold-load.</p>
+      <p>Gate keys on <code>membership.statusCode != "trial"</code> — and this is <b>not a client bug</b>: member-client gates the identical way (<code>canConnectLive = entitled &amp;&amp; !isTrialStatus(statusCode)</code> in <code>trialGate.ts</code>), so a converted-but-still-<code>trial</code> account is blocked on web exactly as on mobile. We flagged that a conversion looked stuck (charge <code>past_due</code>, membership never leaving <code>trial</code>).</p>
+      <p><b>Root cause turned out to be a mislabel, and it’s now fixed.</b> Your <b>#147</b> nailed it: finance was reporting a <b>refused</b> charge as <code>past_due</code> — the same code a genuine async settlement uses — so it read as “processing” forever with no webhook coming. The “ten stuck UGX trials on dev” were all <b>declines</b>; the membership stayed <code>trial</code> <em>correctly</em>, because nothing was ever paid. Finance now returns <code>failed</code> + <code>failureReason</code>, which <b>both clients already consume</b> — member-client (#147) and our apps (the decline reason shows on the charge notice, no more phantom “pending”).</p>
+      <p class="muted"><b>The one open item →</b> a <em>genuine</em> <code>past_due</code> that actually settles (a real M-Pesa/3DS success, not a decline): does the settlement webhook then flip <code>membership.status</code> <code>trial → active</code>? Dev only had declines, so that happy path is still untested end-to-end. A way to force a real settlement in dev/uat is all we need to close it — see the ask.</p>
     </section>
 
     <section>
@@ -263,6 +265,7 @@
       <ol>
         <li><b>Family — paid additional seats.</b> The one real blocker left here: where does the <code>seatPriceId</code> for a <b>beyond-included</b> seat come from on mobile? member-client resolves it with <code>findSeatProduct</code> over the price catalogue — is that catalogue query the path you want us to take, or will Finance expose a simpler per-plan seat price? Included (free) seats already work end-to-end.</li>
         <li><b>Deep links — host the two files (devops).</b> The fingerprints + Team ID are in the table above; the ready-to-host <code>apple-app-site-association</code> and <code>assetlinks.json</code> are in our repo. That’s the whole handoff — just serve them on both hosts at <code>/.well-known/</code>.</li>
+        <li><b>Trial — one settled conversion to test.</b> #147 fixed the decline-mislabel (thank you); what’s left is proving a <em>genuine</em> <code>past_due</code> that settles flips <code>membership.status</code> <code>trial → active</code>. A way to force a real settlement in dev/uat (or a member you’ve driven through one) lets us verify trial → paid → live-attorney on device.</li>
         <li><b>Sanctions — confirm the 403 shape.</b> That the member-call endpoint returns <code>403</code> (not 401 / 423) for a Disabled account, with the member-facing reason in the response body.</li>
         <li><b>Documents — icon values (nice-to-have).</b> Confirm the admin <code>icon</code> values are Lucide names (<code>car</code>, <code>id-card</code>, <code>shield</code>, <code>globe</code>) and/or image URLs — we honour both; a bare emoji falls back to our own glyph.</li>
       </ol>
