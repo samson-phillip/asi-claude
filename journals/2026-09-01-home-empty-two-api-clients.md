@@ -91,9 +91,34 @@ path (which had **zero** test coverage before).
   flaky accessibility UI test in the separate UI target, unrelated to this change
   (its sibling Dynamic Type tests pass).
 
+## Android parity
+
+Checked whether Android has the same two-client divergence. **It does not.** The
+`AsiApi` is created once in `MainActivity.onCreate` (`val api = AsiApi(...)`), not
+in a composable, so it is not re-created on recomposition; the same instance flows
+into `SessionManager` and every `viewModel()` factory. Android's lifecycle has no
+equivalent of SwiftUI re-running a view's `init`, so the token-less-client bug
+can't arise. (A config-change Activity recreation makes a second `api`, but the
+retained view models keep the first — which already carries the token — so auth
+still works; not the reported failure.)
+
+Android **did** share the *other* half of the iOS problem, though: its
+`onUnauthorized()` was a bare `signOut()` with no reason, and — exactly like iOS —
+navigation to sign-in is driven by `sessionEndedReason`, while a null member on an
+authed screen does not auto-redirect (the `signedInMember == null` effect only
+clears the ViewModelStore). So a genuinely rejected token would strand the member
+on a signed-out screen. Fixed for parity: `onUnauthorized()` now
+`endSession(SESSION_EXPIRED)` (guarded by `isSignedIn`), the same helper the
+refresh-failed path already uses.
+
+- Android build + `SessionManagerTest`/`HomeViewModelTest` **green**. No test
+  called `onUnauthorized` directly; the null-reason assertions are all
+  `refreshSessionStatus` paths, untouched.
+
 ## Files
 
-- `swift/AttorneyShield/AttorneyShieldApp.swift`
-- `swift/AttorneyShield/Core/Session/SessionManager.swift`
-- (diagnostics) `swift/AttorneyShield/Core/Network/AsiApi.swift`,
-  `swift/AttorneyShield/Feature/Home/HomeViewModel.swift`
+- Swift: `AttorneyShield/AttorneyShieldApp.swift`,
+  `AttorneyShield/Core/Session/SessionManager.swift`.
+- Kotlin: `app/.../core/session/SessionManager.kt` (`onUnauthorized` parity).
+- (diagnostics, added then removed) `swift/.../Core/Network/AsiApi.swift`,
+  `swift/.../Feature/Home/HomeViewModel.swift`.
