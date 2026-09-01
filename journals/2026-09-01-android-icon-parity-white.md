@@ -25,6 +25,20 @@ iOS too.
 - Rendered the adaptive icon under squircle + circle masks: white tile, centred
   widened gold shield, no clipping.
 
+## Follow-up: malformed on-device (foreground blown up)
+
+First device glance showed the shield **huge and cropped**. Cause: an adaptive
+`<foreground>` is scaled to fill the full 108dp layer, but `ic_launcher_foreground`
+was a **58dp layer-list** (intrinsic 58×59) — so the launcher scaled it ~1.9× and
+the mask cropped the middle. This was latent in the navy version too; it had never
+been looked at on a device.
+
+Fix: `ic_launcher_foreground.xml` is now a real **108×108dp vector** that draws the
+shield centred at **scale 0.56** via a `<group translateX=26 translateY=22.36
+scaleX/Y=0.56>` (shield ≈56% of the tile, inside the 66dp safe zone). Re-rendered
+under circle + squircle masks — centred, no clipping, no blow-up. `assembleDebug`
+green.
+
 ## Note
 
 Still a **stopgap** on both platforms — the bespoke-icon request to design stands
