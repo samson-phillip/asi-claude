@@ -49,6 +49,23 @@ theme-inflation requirement (already confirmed tokenising on device).
   merged fine — no AAPT error). Needs the on-device re-check that the form now
   opens and a test card adds.
 
+## Second crash (after the theme fix): PaymentConfiguration
+
+With the theme fixed the widget inflated, then crashed on a background thread:
+
+```
+IllegalStateException: PaymentConfiguration was not initialized. Call PaymentConfiguration.init().
+  … CardWidgetViewModel … determineCbcEligibility
+```
+
+`CardInputWidget` launches a card-brand-choice eligibility check that reads the
+global `PaymentConfiguration`; the `Stripe(context, key)` constructor didn't set
+it up in time. Fix: call `PaymentConfiguration.init(context, publishableKey)`
+before creating the widget (in a `remember(publishableKey)` at the top of the
+form, so it runs once, before the `Stripe` instance and the widget). iOS has no
+equivalent — `STPAPIClient(publishableKey:)` is self-contained.
+
 ## Files
 
-- Kotlin: `res/values/themes.xml`, `feature/account/AddCardForm.kt`.
+- Kotlin: `res/values/themes.xml`, `feature/account/AddCardForm.kt` (theme wrap +
+  `PaymentConfiguration.init`).
