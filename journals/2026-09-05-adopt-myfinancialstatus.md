@@ -37,11 +37,12 @@ tests gained a `myFinancialStatus: null` stub so they stay on the fallback path.
 
 ## Status
 
-- **Android: `testDebugUnitTest` green**, including the new test. Committed.
-- **iOS: code complete (faithful mirror), but could NOT compile/test locally** — the
-  machine is at **95% disk (≈0.7 GB free)** and SPM cannot clone stripe-ios/lottie-ios
-  (evicted from cache). Not a code issue. iOS commit is held until it compiles once
-  disk is freed (clearing Xcode DerivedData ~895M / Archives 1.6G would do it).
+- **Android: `testDebugUnitTest` green**, including the new test.
+- **iOS: `AttorneyShieldTests` green — 545 passed**, including the new test.
+  (Getting here needed freeing disk: the machine was ~95% full and the large
+  stripe-ios SPM clone failed with `fatal: fetch-pack: invalid index-pack output`.
+  Cleared Xcode DerivedData + the SPM cache + the Chrome cache to make room; then
+  it resolved and built clean.)
 
 ## Still to decide (deferred to user)
 
