@@ -130,12 +130,12 @@
         Attorney Shield · Mobile ↔ Backend
       </p>
       <h1>Mobile team — response to the backend review</h1>
-      <p class="sub">In reply to <b>“Six Asks From Mobile”</b>. Read against the <code style="color:#c9b78a;background:transparent;font-family:var(--mono)">dev</code> branches · updated 31 Aug 2026.</p>
+      <p class="sub">In reply to <b>“Six Asks From Mobile”</b>. Read against the <code style="color:#c9b78a;background:transparent;font-family:var(--mono)">dev</code> branches · updated 08 Sep 2026.</p>
     </div>
   </div>
 
   <div class="wrap">
-    <p class="lede">Update: <b>#1, #2, #5 and the Family screen are now shipped on <code>dev</code></b> — and #1 and #2 needed <b>no new fields</b>, they run off contracts already on the wire. Documents now honour the admin icon and send the device region. Deep links: you <b>confirmed the contract</b> (thank you) — only devops hosting is left, values inline below. #3 and #6 shipped earlier; #4 is with David. Detail — and the few things still on you — below.</p>
+    <p class="lede"><b>Since 31 Aug:</b> the <b>David-V2 call fixes</b> and a <b>native guest login door</b> are now on <code>dev</code> too (detail at the end). <b>#1, #2, #5 and the Family screen</b> shipped earlier — #1 and #2 needed <b>no new fields</b>, they run off contracts already on the wire; #3 and #6 shipped; #4 is with David. <b>One thing reopened:</b> the deep-link domain — your <b>round-two</b> answer contradicts E1 on which host actually serves the files, so we need <b>one definitive call</b> before we can wire it (below). Detail — and the things still on you — below.</p>
 
     <div class="card">
       <div class="card-head">Where each item stands</div>
@@ -181,9 +181,14 @@
               <td class="who">You — paid-seat source</td>
             </tr>
             <tr>
+              <td class="item">Login — guest door + contract</td>
+              <td><span class="pill done"><span class="dot"></span>Shipped</span></td>
+              <td class="who">Nobody — FYI</td>
+            </tr>
+            <tr>
               <td class="item">Deep links · post-registration</td>
-              <td><span class="pill hold"><span class="dot"></span>Contract confirmed</span></td>
-              <td class="who">devops — host the files</td>
+              <td><span class="pill wait"><span class="dot"></span>Reopened</span></td>
+              <td class="who">You — which host?</td>
             </tr>
           </tbody>
         </table>
@@ -243,9 +248,9 @@
     <section>
       <p class="kicker">Deep links · post-registration</p>
       <h2>Web → app handoff after checkout</h2>
-      <p>You <b>confirmed the contract</b> (E1) — <code>/app/return</code>, <code>/return-to-app</code>, <code>/app</code> on <code>attorney-shield.com</code> / <code>www.attorney-shield.com</code>, carrying <code>email</code> and nothing else — “no change needed.” Both parsers already match it exactly (https-only, exact host allow-list, email is a prefill with <b>no authority</b>), plus the custom-scheme fallback. Nothing left in the apps.</p>
-      <p class="muted">(To be clear on domains: the links live on the <b>Webflow</b> site <code>attorney-shield.com</code>, where checkout happens — <b>not</b> <code>attorneyshield.io</code>, which is the gateway/comms infra. So the <code>/.well-known/</code> files below go on <code>attorney-shield.com</code>.)</p>
-      <p>The only thing left is <b>E2 — hosting the association files</b> so the open is silent (no Android disambiguation dialog; iOS Universal Links). You’ve been waiting on our fingerprints + Team ID — here they are (they’re public by design, served at <code>/.well-known/</code>):</p>
+      <p><b>Reopened — your two answers contradict, and we can’t wire it until one wins.</b> <b>E1</b> said the contract was ours as-built: <code>/app/return</code>, <code>/return-to-app</code>, <code>/app</code> on <code>attorney-shield.com</code>, carrying <code>email</code> — “no change needed.” <b>Round two</b> said the opposite: <code>attorney-shield.com</code> “appears in our config only as the Mailgun sending domain … nothing in Terraform or the cluster serves it,” that <b>none of our three paths is in use</b>, and offered to host <code>/.well-known/</code> per-env on <code>attorneyshield.io</code> with a return URL of <code>/app/return?email=&lt;urlencoded&gt;</code>.</p>
+      <p class="muted"><b>Two answers, pick one (per env if they differ):</b> (1) which host will actually serve <code>apple-app-site-association</code> + <code>assetlinks.json</code> — <code>attorney-shield.com</code> or <code>attorneyshield.io</code>? (2) the exact return path + query. The moment we have that, we point both parsers, the iOS Associated Domains entitlement and the Android intent-filter at it — a same-day change on our side.</p>
+      <p>The association-file values are <b>ready</b> and public by design, for devops to serve at <code>/.well-known/</code> on whichever host you confirm:</p>
       <div class="tscroll" style="margin-top:14px">
         <table>
           <tbody>
@@ -257,7 +262,15 @@
           </tbody>
         </table>
       </div>
-      <p class="muted" style="margin-top:14px">Host <b>both</b> files on <b>both</b> hosts at <code>/.well-known/</code>. AASA must be <code>application/json</code>, <b>no <code>.json</code> extension</b>, no redirect. <code>assetlinks.json</code> lists both fingerprints (belt-and-braces). One check: if Play App Signing is on, confirm the app-signing-key SHA-256 in Play Console matches the first one above; if it differs, add it as a third entry — harmless either way.</p>
+      <p class="muted" style="margin-top:14px">Host <b>both</b> files at <code>/.well-known/</code> on whichever host you confirm above (serving on both <code>.com</code> and <code>.io</code> is harmless if you’d rather not choose yet). AASA must be <code>application/json</code>, <b>no <code>.json</code> extension</b>, no redirect. <code>assetlinks.json</code> lists both fingerprints (belt-and-braces). One check: if Play App Signing is on, confirm the app-signing-key SHA-256 in Play Console matches the first one above; if it differs, add it as a third entry — harmless either way.</p>
+    </section>
+
+    <section>
+      <p class="kicker">Login · guest door + shared contract</p>
+      <h2>Native guest sign-in, on your contract</h2>
+      <p><b>Shipped on both platforms</b> (mirroring member-client’s “Guest User Capture Flow”). “Continue as a guest” on the login screen collects a first/last name and email, verifies a code, and the account is born a <b>Guest User</b> — all on contracts you already serve, <b>no backend change</b>. Two things we now send, so nothing surprises you:</p>
+      <p><code>verifyLoginOtp(origin: APP, firstName, lastName)</code> — we pass the guest’s name on the guest-door path; you already stamp it as the display name only on a <em>new</em> account, so a returning guest (or any existing member) is never renamed. Ordinary sign-in sends the names as <code>null</code>.</p>
+      <p><code>requestLoginOtp { … passwordSignInAvailable }</code> — we request the flag to gate “Use password instead,” and <b>retry without it</b> if the gateway hasn’t introspected the field yet, so a federated lag never breaks the login screen. No ask — just confirming we’re on the same contract.</p>
     </section>
 
     <div class="ask">
@@ -265,7 +278,7 @@
       <ol>
         <li><b>Add card — ✓ resolved, no action needed.</b> We built the in-app add-card flow (33D): the app reads <code>stripePublishableKey</code>, tokenises the card on-device with the Stripe SDK, then calls <code>attachPaymentMethod</code>. <b>Confirmed dev serves a test key</b> (<code>pk_test_…</code>) and, on device, a test card tokenises (<code>POST /v1/payment_methods → 200</code>), attaches via <code>attachPaymentMethod</code>, and lands in the saved-cards list — <b>verified end-to-end on both iOS and Android</b>. Flagging only so you know it's live — nothing needed from you.</li>
         <li><b>Family — paid additional seats.</b> The one real blocker left here: where does the <code>seatPriceId</code> for a <b>beyond-included</b> seat come from on mobile? member-client resolves it with <code>findSeatProduct</code> over the price catalogue — is that catalogue query the path you want us to take, or will Finance expose a simpler per-plan seat price? Included (free) seats already work end-to-end.</li>
-        <li><b>Deep links — host the two files (devops).</b> The fingerprints + Team ID are in the table above; the ready-to-host <code>apple-app-site-association</code> and <code>assetlinks.json</code> are in our repo. That’s the whole handoff — just serve them on both hosts at <code>/.well-known/</code>.</li>
+        <li><b>Deep links — one definitive host, then devops serves the files.</b> E1 and round-two contradict on whether <code>attorney-shield.com</code> or <code>attorneyshield.io</code> serves <code>/.well-known/</code>, and on the return path. Pick one (per env if needed); the fingerprints + Team ID are in the table above and the files are ready. Until that’s settled we can’t point the app at a host — this is the one hard blocker left.</li>
         <li><b>Trial — one settled conversion to test.</b> #147 fixed the decline-mislabel (thank you); what’s left is proving a <em>genuine</em> <code>past_due</code> that settles flips <code>membership.status</code> <code>trial → active</code>. A way to force a real settlement in dev/uat (or a member you’ve driven through one) lets us verify trial → paid → live-attorney on device.</li>
         <li><b>Sanctions — confirm the 403 shape.</b> That the member-call endpoint returns <code>403</code> (not 401 / 423) for a Disabled account, with the member-facing reason in the response body.</li>
         <li><b>Documents — icon values (nice-to-have).</b> Confirm the admin <code>icon</code> values are Lucide names (<code>car</code>, <code>id-card</code>, <code>shield</code>, <code>globe</code>) and/or image URLs — we honour both; a bare emoji falls back to our own glyph.</li>
