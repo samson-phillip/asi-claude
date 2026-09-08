@@ -1,7 +1,11 @@
 # Scope — Google Places address autocomplete (native iOS + Android)
 
-**Status:** scoping · **Date:** 2026-08-31 · **Parity source:** member-client
-`addressAutocomplete.ts` + `googlePlaces.ts` (David feedback 2.11/2.12, #142).
+**Status:** Phase 0 ✅ + Phase 1 ✅ BUILT on both platforms (2026-09-08), shipping
+**dark** until a key + governance land (Phase 2). Provider realised as the Places
+**web-service REST** (client-direct, unit-testable), not the SDK — see
+`journals/2026-09-08-address-autocomplete-phase1.md`. · **Date:** 2026-08-31 ·
+**Parity source:** member-client `addressAutocomplete.ts` + `googlePlaces.ts`
+(David feedback 2.11/2.12, #142).
 
 This is the one item from the last member-client pull that can't be ported —
 member-client uses the **Google Maps JavaScript API**, which doesn't run on
