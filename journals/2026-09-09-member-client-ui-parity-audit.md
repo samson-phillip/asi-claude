@@ -58,3 +58,42 @@ one structural question.
 
 Verify-then-build A1/A3/A6 (member-facing, contained) → decide B1 → A2/A4 → B2/B3 →
 batch D. Skip C. Confirm everything on device (emulator + member-client side by side).
+
+---
+
+## Phase 2 — execution log (batch 1, branch `mirror-member-client-ui`)
+
+Greenlit scope: "contained gaps + polish" — A3, A6, A2, A1 + D. B1 approved but
+deferred to a later batch. All landed on `mirror-member-client-ui` (not yet
+merged to dev), tests green on both apps.
+
+- **A6** — "Licensed Attorney Connected" connect banner. kotlin `80…` / swift.
+- **A3** — Support pane + Account row (email row → mailto, "Phone support — coming
+  soon"). New `ic_row_support` glyph both platforms. kotlin `61e93f1` / swift `6104142`.
+- **D polish** — swift sponsor-banner corner radius → `AsiMetrics.cornerRadius`. swift `336a0f2`.
+  (Sponsor-carousel over-stretch fix — banner aspect 3.1→4.0 to match the 4:1 art — shipped
+  alongside, both apps.)
+- **A2** — Appearance theme selector (System/Light/Dark) in Settings. The theme
+  *system* already existed; this adds the user control + a persisted `ThemeStore`
+  (mirrors the language pref), applied at the app root so the whole app re-themes.
+  kotlin `75b6a4e` / swift `fdb10e0`.
+- **A1** — PIN & Security row under Protection → change/set-PIN wizard. Change-only
+  (no OTP recovery, per decision). Reuses the existing isPinSet / verifyMemberPin /
+  setMemberPin APIs (NO new mutation): verify current PIN (skipped when none set) →
+  new PIN → confirm. Reuses `AsiPinPad` + the shared 4-digit standard. New
+  `ic_row_lock` glyph both platforms. +5 wizard tests each side.
+  kotlin `c739ce1` / swift `f95dcd3`.
+
+### Decisions taken during execution
+- **PIN length**: kept 4 (member-client allows 4–8) — our whole PIN UX (Setup,
+  call-end gate, `AsiPinPad`) is 4-digit; a 6-digit change would desync the gate.
+- **Current-PIN gate**: mobile has no `changeMemberPin` mutation, but `verifyMemberPin`
+  + `setMemberPin` compose to the same guarantee (backend verifies current either way),
+  so no backend dependency was added.
+- **PIN row placement**: under **Protection** (mirrors member-client's AccountScreen),
+  not Settings where our Change-password row lives.
+
+### Still open / next
+- **B1** money consolidation — APPROVED, deferred. Biggest IA change; do as its own batch.
+- Not started: A4 TravelPrompt, A5 IntroVideo (both still "wanted at all?" — open), B2/B3/B4.
+- Branch not merged to dev yet — batch 1 is a reviewable unit on `mirror-member-client-ui`.
