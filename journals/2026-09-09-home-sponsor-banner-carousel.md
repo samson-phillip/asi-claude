@@ -36,8 +36,11 @@ fallback, empty-on-failure. Android `:app:testDebugUnitTest` green; iOS
 
 ## Notes / tunables
 
-- Banner aspect is a constant (Android `BANNER_ASPECT = 3.1`, iOS `bannerHeight =
-  118`) — the images are designed to fill; easy to tune once seen on device.
+- **Banner aspect = 4.0** (Android `BANNER_ASPECT`, iOS `bannerAspect`). First cut
+  used 3.1 / a fixed 118pt height, which cropped the edges on the emulator (the
+  right-hand "Talk Now" button was cut off). The images are authored **1600x400
+  (4:1)** — confirmed by measuring the CloudFront PNGs — so a 4:1 box fills with
+  nothing cropped. (kotlin 2a20f54 / swift ae64eaf.)
 - Coil was already a dependency (from the profile-photo work); no new Android dep.
 - The 5s auto-advance is unconditional on iOS (SwiftUI can't easily detect a
   mid-drag to pause like member-client does); minor fidelity difference.
