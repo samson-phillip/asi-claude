@@ -97,3 +97,36 @@ merged to dev), tests green on both apps.
 - **B1** money consolidation — APPROVED, deferred. Biggest IA change; do as its own batch.
 - Not started: A4 TravelPrompt, A5 IntroVideo (both still "wanted at all?" — open), B2/B3/B4.
 - Branch not merged to dev yet — batch 1 is a reviewable unit on `mirror-member-client-ui`.
+
+---
+
+## Phase 2 — batch 2: B1 money consolidation (branch `mirror-member-client-ui`)
+
+**B1 turned out much smaller than the audit feared.** The audit assumed we were
+over-split (separate Plan/Payment/Family/Receipts screens). In reality both apps'
+`PlanPane`/`planPane` were ALREADY member-client's hub pattern: a plan card + nav
+rows to Payment method, Family, Billing history. And member-client itself does NOT
+inline everything onto one scroll — PaymentAndPlanScreen is a hub that PUSHES to
+`saved-cards` / `add-subaccount` / `invoices`. So the detail panes were correct to keep.
+
+The only genuine divergence was the **entry points**: a "Plan Details" row (Account)
+plus a redundant "Family members" row (Protection). Fixed to match member-client's
+single row:
+- "Plan Details" row → **"Payment & plan"** (opens the same hub); pane title +
+  delete-account footnote renamed to match.
+- Removed the duplicate "Family members" row from Protection — family is reached
+  only via the hub now (member-client surfaces sub-accounts inside Payment & Plan).
+  Protection is now Emergency contacts + PIN & Security.
+
+Presentational only; no ViewModel/data change, all existing tests still green.
+kotlin `abf846c` / swift `f146572`.
+
+**Deliberately NOT added:** a separate "What's Included"/plan-detail screen
+(member-client has one; our hub's plan card already carries that info — adding a
+screen would be scope creep, not consolidation). Deeper inlining (card form /
+roster / receipts on one scroll) was rejected — it would DIVERGE from member-client's
+own hub+detail pattern.
+
+### Batch status
+- **Done on branch:** A6, A3, D, A2, A1 (batch 1) + B1 (batch 2). Not merged to dev.
+- **Open:** A4 TravelPrompt, A5 IntroVideo (still "wanted at all?"), B2/B3/B4. Merge-to-dev decision pending review.
