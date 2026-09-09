@@ -130,7 +130,7 @@
         Attorney Shield · Mobile ↔ Backend
       </p>
       <h1>Mobile team — response to the backend review</h1>
-      <p class="sub">In reply to <b>“Six Asks From Mobile”</b>. Read against the <code style="color:#c9b78a;background:transparent;font-family:var(--mono)">dev</code> branches · updated 08 Sep 2026.</p>
+      <p class="sub">In reply to <b>“Six Asks From Mobile”</b>. Read against the <code style="color:#c9b78a;background:transparent;font-family:var(--mono)">dev</code> branches · updated 09 Sep 2026.</p>
     </div>
   </div>
 
@@ -273,6 +273,14 @@
       <p><code>requestLoginOtp { … passwordSignInAvailable }</code> — we request the flag to gate “Use password instead,” and <b>retry without it</b> if the gateway hasn’t introspected the field yet, so a federated lag never breaks the login screen. No ask — just confirming we’re on the same contract.</p>
     </section>
 
+    <section>
+      <p class="kicker">Address search · personal info</p>
+      <h2>How does the new backend hand us the Google Maps key?</h2>
+      <p><b>Built on both platforms, shipping dark.</b> The personal-info address form now has a “Search Address” typeahead (Google Places) that fills line 1 / city / postal / country / state, mirroring member-client — via the Places <b>web-service REST</b>, the same calls the old native app makes. With no key it’s hidden and the form is fully manual, so it’s merged and harmless until a key is wired.</p>
+      <p><b>The one open question — where the key comes from on the <em>new</em> stack.</b> We don’t want to embed a key in the binary. The <b>old native app</b> fetches it from the backend at boot: <code>GET /auth/header</code> → <code>data.keys.map_key</code> (falling back to <code>google_map_key</code> / <code>google_maps_key</code> / <code>google_geocode_key</code>), and the Stripe key the same way (<code>keys.stripe_key</code>). <b>member-client</b> reads it from a container-injected <code>window.__ASI_MAPS__.apiKey</code>. Both keep the key <b>out of the app</b> and let it vary per environment.</p>
+      <p><b>Ask:</b> how should our native apps get the Maps key from the <b>gateway/comms</b> — is there a <code>keys.map_key</code>-style settings/header field we should read, or should we consume the same value behind <code>__ASI_MAPS__</code>? Once we know the field, the apps fetch it at startup and embed nothing. (For dev we’re temporarily using the old app’s project key, which is <b>application-unrestricted</b> — worth locking down to the Places API + quotas before any release.)</p>
+    </section>
+
     <div class="ask">
       <h3>What’s still on you (short list)</h3>
       <ol>
@@ -282,6 +290,7 @@
         <li><b>Trial — one settled conversion to test.</b> #147 fixed the decline-mislabel (thank you); what’s left is proving a <em>genuine</em> <code>past_due</code> that settles flips <code>membership.status</code> <code>trial → active</code>. A way to force a real settlement in dev/uat (or a member you’ve driven through one) lets us verify trial → paid → live-attorney on device.</li>
         <li><b>Sanctions — confirm the 403 shape.</b> That the member-call endpoint returns <code>403</code> (not 401 / 423) for a Disabled account, with the member-facing reason in the response body.</li>
         <li><b>Documents — icon values (nice-to-have).</b> Confirm the admin <code>icon</code> values are Lucide names (<code>car</code>, <code>id-card</code>, <code>shield</code>, <code>globe</code>) and/or image URLs — we honour both; a bare emoji falls back to our own glyph.</li>
+        <li><b>Address search — the Maps key on the new backend.</b> The old app reads it from <code>/auth/header</code> → <code>keys.map_key</code>; member-client from <code>__ASI_MAPS__</code>. What’s the equivalent on the gateway/comms so our apps fetch it at startup and embed nothing? (And the shared project key looks application-unrestricted — worth locking to the Places API + quotas before release.)</li>
       </ol>
     </div>
 
