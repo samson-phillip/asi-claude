@@ -243,3 +243,28 @@ Until then both apps correctly show "Your intro video will appear here once it's
 Shipped: A1 PIN, A2 theme, A3 Support, A6 (verify-only), D polish, B1 Plan Details
 (exact mirror; Delete Account removed -- compliance flag), Home parity, A4, A5.
 Remaining audit items: B2/B3/B4 (low polish). On-device pass still needed pre-release.
+
+---
+
+## Phase 2 — batch 5: B2/B3/B4 layout polish (branch `mirror-member-client-ui`)
+
+- **B2 SHIPPED** (kotlin c1b81bc / swift 4f377b3): Profile First+Last names now a
+  two-column row (member-client's grid), not stacked.
+- **B4 SHIPPED** (same commits): family roster entry collapsed to ONE row -- avatar
+  + name + passive "Invite sent"/"Active" status + email, actions compact on the
+  right. member-client's row has only remove; Resend kept as a small link (no
+  capability lost). The audit's premise ("invite sent / Resend on one row") was
+  slightly off -- member-client has no per-row Resend at all.
+- **B3 -- NO CHANGE (decision).** kotlin ALREADY has an in-app DocumentViewer
+  overlay (PdfRenderer, images) mirroring member-client's DocumentViewer, built
+  because Android's ACTION_VIEW sent the member out of the app. Swift uses
+  QuickLook, which is ALSO in-app (a modal) and the native iOS idiom -- same
+  "stay in-app" goal met. A custom SwiftUI overlay would be maintenance for
+  marginal gain, so QuickLook stays. (The scout mislooked at kotlin's text Legal pane.)
+
+## MIRROR INITIATIVE COMPLETE
+All audit items resolved: A1 PIN, A2 theme, A3 Support, A6 (verify-only), D polish,
+B1 Plan Details (exact; Delete Account removed), Home parity, A4 TravelPrompt,
+A5 IntroVideo (backend-dep flagged to Innocent), B2, B3 (kept native), B4.
+Both PRs (#1) open into dev. Only remaining: on-device pass before release; A5
+shows a placeholder until Innocent publishes a splash video.
