@@ -130,3 +130,44 @@ own hub+detail pattern.
 ### Batch status
 - **Done on branch:** A6, A3, D, A2, A1 (batch 1) + B1 (batch 2). Not merged to dev.
 - **Open:** A4 TravelPrompt, A5 IntroVideo (still "wanted at all?"), B2/B3/B4. Merge-to-dev decision pending review.
+
+---
+
+## Phase 2 — batch 2 REVISED: B1 exact mirror of Plan Details
+
+Samson's follow-up: "Design it to mirror member-client exactly." My batch-2 pass
+kept our labels and folded inclusions into the hub; this redoes it to match
+member-client's PaymentAndPlanScreen + PlanDetailScreen precisely. kotlin `320ca7b`
+/ swift `c8921c3` (both tests green).
+
+Corrected from reading the actual source (not the scout summary):
+- The screen title is **"Plan Details"** (member-client's `PAYMENT_AND_PLAN_TITLE`
+  = "Plan Details"; the file is *named* PaymentAndPlanScreen but that string is not
+  displayed). My "Payment & plan" rename was wrong -> reverted.
+- member-client is a **hub + detail** pattern, not one inline scroll: the hub PUSHES
+  to saved-cards / add-subaccount / invoices / plan-detail. We keep our sub-panes.
+
+Exact structure now:
+- Rows in order: **Payment Info** (card line + "Update") · **Sub Accounts** (only
+  covered > 1; "N of M Spots Filled.") · **What's Included** · **View Invoices**.
+- Plan card: **base plan price** as the heading (not the seat-inclusive total),
+  "You and X members", one status+renewal line.
+- New **"What's Included"** screen (member-client's PlanDetailScreen): blurb,
+  primary/sub-account badge, "Subaccounts N of M used" tile, Add Subaccount /
+  Manage membership CTAs.
+- Empty state "No active membership" + View plans.
+- Derived strings ported verbatim from `lib/paymentAndPlan` (spellNumber,
+  spotsFilled, coveredSummary, subaccountsUsed, formatExpiry) with a unit test each side.
+
+### Decision: Delete Account REMOVED (Samson confirmed)
+member-client pulled the in-app "Delete account" (David 2026-08-31 §2.7) from both
+Plan Details and Settings; deletions go through support. Samson chose "remove it
+(mirror exactly)". Entry points gone on both apps; the capability stays (closeAccount
++ CloseAccount pane + tests) with no UI door -- support processes deletions.
+**Compliance flag:** self-service right-to-delete is now support-mediated; worth a
+GDPR/CCPA check with legal.
+
+### Decision: plan card matches member-client (Samson confirmed)
+Overrides the earlier CodePen "keep 'You + N members' / show total" note for THIS
+card only. Now "You and X members" + base unit price. (The Home/Overview
+`membershipCard` is untouched -- still "You + N".)
