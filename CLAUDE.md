@@ -50,14 +50,21 @@ When references disagree, resolve in this order:
 | Rank | Source | Governs |
 |---|---|---|
 | 1 | `design/color-system.md` (colour PDF) | All colour values, no exceptions |
-| 2 | CodePen "Attorney - Shield App V6" — `notes/design-reference-codepen.md` | Layout, typography, screen inventory, flow, look & feel |
-| 3 | `member-client` | Behaviour, API contracts, state machines, errors |
+| 2 | `member-client` | **Visual + behavioural source of truth**: screen inventory, layout, look & feel, flow, behaviour, API contracts, state machines, errors |
+| 3 | CodePen "Attorney - Shield App V6" — `notes/design-reference-codepen.md` | The visual design of individual UI **elements that exist in both** — CodePen is better-designed, so match it for those; historical otherwise |
+
+**2026-09 directive (CEO via Innocent): drop CodePen as the app's blueprint and
+mirror `member-client`.** member-client was re-skinned to the Attorney Shield
+navy/gold palette (its `src/ui/tokens.css` is `--shield-navy` / `--justice-gold`
+/ `--active-gold` — identical to `color-system.md`), so it is now BOTH the visual
+and behavioural reference. CodePen no longer governs the screen inventory or flow;
+it survives only as the preferred look for a **shared** element (one that appears
+in both member-client and CodePen), because those frames are more polished.
 
 Three rules that are easy to get wrong:
 
-- **`member-client` is NOT the visual reference.** Its CSS is blue/violet
-  (`#4f7cff`, `#7a5cff`) — the "avoid" territory in the PDF. Copy its logic,
-  never its palette.
+- **`member-client` IS the visual reference now** (2026-09). The old "its CSS is
+  blue/violet, copy logic not palette" rule is retired — member-client is navy/gold.
 - **Never white text on either gold.** White on Justice Gold `#C4850A` is 3.13:1
   and fails WCAG AA. Use Shield Navy `#0D1B2E` on gold (5.53:1).
 - **Mid Navy `#1A3A5C` is borders only** — 1.49:1 on Shield Navy. For muted text
