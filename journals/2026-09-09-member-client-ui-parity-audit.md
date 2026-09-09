@@ -204,3 +204,42 @@ wired, just unreachable from Home (like member-client). kotlin `2d2e4af` / swift
 ### Still open
 - A4 TravelPrompt, A5 IntroVideo -- "wanted at all?" undecided. B2/B3/B4 polish.
 - On-device pass alongside member-client still needed before release.
+
+---
+
+## Phase 2 — batch 4: A4 TravelPrompt + A5 IntroVideo (branch `mirror-member-client-ui`)
+
+Samson: "add them and also notify innocent." Both built on both apps.
+
+**A4 TravelPrompt** (kotlin 88b5b3b / swift d25c912). member-client's prompt,
+LIGHT version. The scout missed that member-client's TravelPrompt sets a
+currentISO2 routing OVERRIDE that we don't have -- our call routing already reads
+the live device timezone (TimeZoneCountry), so a travelling member is auto-connected
+to attorneys where they are. So "I'm travelling" just acknowledges + suppresses the
+destination 30 days; "I've moved here" -> support (billing/product change); "Not now"
+suppresses. member-client's copy is kept verbatim (its promise holds via auto-routing).
+Ported travelDetection (partial tz->ISO2 map, shouldPrompt, 30-day dismissal) +
+its own decision tests. Home country = profile.countryId; never for guests.
+
+**A5 IntroVideo** (kotlin c7c70a1 / swift 2b29e63). Account -> "Intro video" ->
+member-client's IntroVideoScreen. Used the platform players (Android VideoView /
+iOS AVKit) -- NO new media dependency. Ported getSplashVideoUrl (org media assets
+then platform App Content, lenient splash_video match) + the matcher tests. Shows
+the honest placeholder until a video is published.
+
+### BACKEND DEPENDENCY -> Innocent (A5)
+The Intro Video shows the placeholder until the gateway serves a splash video.
+Mobile needs, from Innocent:
+  1. Confirm `adminMediaAssetsByOrganization(organizationId)` and
+     `appContentMediaAssets` are live on the gateway, returning
+     `{ assetKey displayName filePath mimeType isActive }`.
+  2. A "Splash Video" media asset actually PUBLISHED (org override or platform App
+     Content) with a playable https `filePath` (not an s3:// key), matching key
+     `splash_video` / `splash-video` / display name "Splash Video".
+  3. Which scope on dev -- platform-wide, or per-org?
+Until then both apps correctly show "Your intro video will appear here once it's published."
+
+### Batch status -- all on branch, both PRs (#1) open into dev
+Shipped: A1 PIN, A2 theme, A3 Support, A6 (verify-only), D polish, B1 Plan Details
+(exact mirror; Delete Account removed -- compliance flag), Home parity, A4, A5.
+Remaining audit items: B2/B3/B4 (low polish). On-device pass still needed pre-release.
