@@ -171,3 +171,36 @@ GDPR/CCPA check with legal.
 Overrides the earlier CodePen "keep 'You + N members' / show total" note for THIS
 card only. Now "You and X members" + base unit price. (The Home/Overview
 `membershipCard` is untouched -- still "You + N".)
+
+---
+
+## Phase 2 — batch 3: Home screen parity (branch `mirror-member-client-ui`)
+
+Samson logged in and said Home still didn't look like member-client. Scouted
+member-client's HomeScreen.tsx vs ours: member-client's Home is deliberately
+minimal (a comment there: the CEO had the membership + location summary cards
+removed -- "Home is for reaching an attorney"). Two divergences reversed prior
+deliberate choices, so confirmed with Samson before ripping out:
+
+- **Shield hero REMOVED** (Samson: "remove, match m-c"). member-client has no
+  hero; the situation tiles are the connect surface. Biggest visual mismatch.
+- **Plain tile grid** (Samson: "match m-c"). Dropped the "What's happening?"
+  heading, the Change/Choose picker and the 3-slot dashed grid -- reverses the
+  earlier situations-first ask, but that's the parity call.
+
+Mirrored the rest without asking: single "Welcome back, {name}" greeting; pill
+copy ("Active 24/7 Coverage." / "Grace Period -- Renew to stay covered." /
+"Guest user explorer"); grace card moved UP under the pill (bordered card + gold
+"Pay Now"); added the guest CTA ("Tap here to view pricing plans"); readiness card
+moved BELOW the tiles. Tour's Shield step re-anchored to the tiles + reworded.
+Removed the dead ShieldHero + SituationSlots + dead imports.
+
+Nothing lost behaviourally: the situations picker sheet + the connect tray stay
+wired, just unreachable from Home (like member-client). kotlin `2d2e4af` / swift `a7d4458`.
+
+### Both PRs open into dev (no reviewers, per Samson)
+- kotlin PR #1, swift PR #1 -- auto-updated with A1/A2/A3/B1 + Home.
+
+### Still open
+- A4 TravelPrompt, A5 IntroVideo -- "wanted at all?" undecided. B2/B3/B4 polish.
+- On-device pass alongside member-client still needed before release.
