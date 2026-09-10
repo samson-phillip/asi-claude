@@ -339,3 +339,10 @@ clone of the 2.4M-object Stripe SPM repo, which flaked on the network
 ("fetch-pack: invalid index-pack output") on EVERY swift-Account attempt. So the
 swift Account commit is UNBUILT. kotlin is verified. Needs a local `xcodebuild`
 on swift before merge; watch ShareLink + the two new AccountScreen params.
+
+### Resolved: swift build verified
+Samson freed disk (68Gi). swift b0bb296 rebuilt from scratch (fresh Stripe SPM
+clone) -> **BUILD SUCCEEDED**, no errors. ShareLink, the two new AccountScreen
+params + wiring, the AsiNavRow `chevron` flag, and all three imagesets compile.
+No code fixes were needed -- the unbuilt commit was correct. Batch 7 is now
+green on BOTH apps; no pre-merge build caveat remains.
