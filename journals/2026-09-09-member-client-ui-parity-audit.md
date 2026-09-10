@@ -357,3 +357,47 @@ Readiness was only loaded on the checklist screen, so both apps now load it on
 Account entry too (swift: `.task { completion.load() }`; kotlin: Account branch
 spins up the Activity-scoped, shared completion VM + LaunchedEffect load).
 The earlier "shows unconditionally" FLAG is now resolved.
+
+---
+
+## Phase 2 — batch 8: Docs/Glovebox field-type parity (branch `mirror-member-client-ui`)
+
+Samson flagged the Docs screen didn't match member-client. Mapped all three
+(reference DocumentsScreen.tsx vs kotlin/swift GloveboxScreen) via two Explore
+agents. Finding: the apps are near-identical mirrors of each other and diverge
+from the reference the same way. **Root gap: field-type coverage.** Both apps'
+`DocumentFieldKind.fromWire` only mapped text/dropdown/file/image; the reference
+renders eight types, so number/date/textarea/radio/select/yes-no all collapsed to
+`Unsupported` ("not supported in the app yet").
+
+Samson chose: **typed fields + quick wins**, and **keep the system picker** (don't
+build the MOBILE #143 Camera/Gallery/Documents sheet -- documented CodePen-rule
+decision, re-confirmed).
+
+Shipped (kotlin 8ab45d5 VERIFIED / swift 791c4b3 VERIFIED):
+- DocumentFieldKind += Textarea/Number/Date/Radio/YesNo; fromWire maps the
+  yes-no family (checkbox/boolean/toggle/…) and select/choice -> Dropdown.
+- FieldRow renders each: number (numeric keyboard), **date = validated
+  YYYY-MM-DD typed field** (kept typed, NOT a native picker, so both platforms
+  match -- a follow-up could make it a real picker), textarea (multi-line),
+  radio (selectable group), yes-no (switch, stored "yes"/"no").
+- Validation mirrors member-client: required can't save empty + number must be
+  numeric; per-field messages block the save. Cleared on edit / cancel / back.
+- Required "*" shown (red on explicit labels; appended to floating labels).
+- Footer security line (#139) at the foot of the Glovebox (our "Law Firm
+  Representative" wording, not the reference's "legal first responder").
+- kotlin only: remote (URL) section icons now load via Coil (already a dep),
+  tinted code glyph beneath as fallback. Swift already loaded them.
+- Shared components gained: kotlin AsiTextField `minLines`; swift AsiTextField
+  `keyboardType` + `axis`. All defaulted; existing call sites unaffected.
+
+Verified: kotlin compileDebugKotlin + GloveboxViewModelTest 30/30 + DocumentKindTest 7/7;
+swift BUILD SUCCEEDED + GloveboxViewModelTests TEST SUCCEEDED. member-client pulled
+to dev @ 22565a2 first.
+
+### Deliberately NOT changed (documented divergences, left per Samson / CodePen rule)
+- Camera/Gallery/Documents upload sheet (#143) -> single system picker.
+- Summary card counts SECTIONS not documents (a section holds many fields).
+- Nav model: our section-list -> section-detail drill-down vs the reference's
+  one-screen-with-group-titles.
+- Upload tile uses a gold glyph, not the reference's crimson/check tile.
