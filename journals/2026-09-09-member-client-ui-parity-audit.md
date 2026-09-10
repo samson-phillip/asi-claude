@@ -429,3 +429,16 @@ POST-LOGIN LANDING only, via a `checklistFromLogin` flag armed at the two login
 landings (login success + guest-name save) and consumed on the checklist's first
 load. Explicit taps leave it false -> checklist stays open. Returning onboarded
 members still skip it at login (unchanged).
+
+### Docs screen: Glovebox -> Documents verbiage (screen only)
+Samson: "the app still has glovebox verbiage" on the Docs screen. Fixed the
+Docs-screen copy on both apps (kotlin 2b3edb3 / swift 41d5301, build-green):
+heading "Digital Glovebox" -> "My Documents"; card eyebrow "ENCRYPTED GLOVEBOX" ->
+"ENCRYPTED DOCUMENTS"; checklist subheading "Stored in your Glovebox ..." ->
+"Stored securely ..."; "Loading your Glovebox" -> "Loading your documents"; the
+load + upload error strings -> "... your documents."
+SCOPED to the Docs screen (Samson chose "Docs screen only"). "Glovebox" is KEPT as
+a brand term in the guided tour ("Your Glovebox, always ready."), the Welcome
+carousel ("Digital glovebox") and the Home nudge -- member-client keeps "Glove Box"
+in exactly those spots (its own summary card still reads "Digital Glove Box.").
+Don't strip those without a new decision.
