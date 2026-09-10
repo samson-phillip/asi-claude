@@ -401,3 +401,16 @@ to dev @ 22565a2 first.
 - Nav model: our section-list -> section-detail drill-down vs the reference's
   one-screen-with-group-titles.
 - Upload tile uses a gold glyph, not the reference's crimson/check tile.
+
+### Follow-up: Account hub — PIN row style + Finish-Profile visibility (from a screenshot)
+Samson shared an Android Account screenshot (John Doex, onboarded). Two fixes,
+kotlin 9410bd4 / swift 1b94e84 (both build-green):
+- **PIN & Security** rendered as a bordered card with no icon/chevron — the only
+  `divided=false` row in a flat hairline list. Flipped to `divided=true`; now draws
+  the lock glyph + label + chevron like every other row.
+- **Finish Your Profile** shown UNCONDITIONALLY again. member-client AccountScreen.tsx:147
+  renders it with no completion condition, and Samson asked for it "like the member
+  client" — so this REVERSES the completion-gating from 4575dcb/0e43004 (which had
+  hidden it once onboarded, i.e. why it was absent for John Doex). Removed the
+  showFinishProfile param + the readiness load from the Account branch on both apps.
+  (Net: back to the original mirror behaviour. The gate was a round-trip.)
