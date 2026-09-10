@@ -498,3 +498,30 @@ PROPER FOLLOW-UP: a shared "member home country ISO2" resolver (profile country 
 via listCountries, current ?? home ?? null, cached) used by Docs + Home incident types
 + call routing — mirroring member-client's memberCountry.ts / location.tsx. Bigger,
 product-level; not done.
+
+### Shared home-country resolver + Android Back button (Samson)
+
+**MemberCountry resolver** (kotlin 43eb196 / swift ce6e8fc, both build+test green).
+Built the shared "member home country" resolver member-client has (memberCountry.ts):
+resolves the profile's country to an ISO-2, cached per member, cleared on sign-out.
+The profile's `countryId` is an opaque RECORD id (not ISO-2), so it matches the
+countries list by id OR iso2, with a 2-letter-code fallback (the gateway's field
+naming is inconsistent, and the tests use ISO-2-as-countryId). Wired into:
+- Docs field query -> home ?? null (supersedes the interim null; real tailoring).
+- Travel detection -> resolved home ISO-2 (fixes the compare-opaque-id-to-ISO-2 bug,
+  so "I'm travelling" can actually fire; also warms the cache).
+- Call routing (currentCountry) -> the warm home ISO-2, not the device timezone
+  (the Kenyan-member-to-California bug). swift default is nil; the app root passes the
+  resolver closure (default args can't see `session`). kotlin default reads it directly.
+Cache is process-global, so tests reset it between suites (a glovebox resolution was
+leaking into the home travel-detection tests). Robust-resolver note: matching id OR
+iso2 + 2-letter fallback means it works whether `countryID` is opaque or already ISO-2.
+
+**Android Back button** (kotlin 6cd0b86). The nav is a when(destination) with no back
+stack and no BackHandler -> hardware/gesture Back closed the app from every screen.
+Added a fixed screen-hierarchy Back (NOT a history stack, which would land Back on a
+programmatic redirect like the checklist auto-skip / post-login landing): a root
+BackHandler maps each screen to its parent; Account + Glovebox add their own to pop an
+open sub-pane first; a live call swallows Back (never exit the app or drop the call).
+iOS unaffected (no hardware Back; on-screen chevrons already do this). Verified by
+compile + a scenario trace over all 14 destinations, NOT a live emulator run.
