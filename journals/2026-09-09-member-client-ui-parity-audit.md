@@ -346,3 +346,14 @@ clone) -> **BUILD SUCCEEDED**, no errors. ShareLink, the two new AccountScreen
 params + wiring, the AsiNavRow `chevron` flag, and all three imagesets compile.
 No code fixes were needed -- the unbuilt commit was correct. Batch 7 is now
 green on BOTH apps; no pre-merge build caveat remains.
+
+### Follow-up: gate "Finish Your Profile" on completion (Samson's call)
+Diverge from member-client (shows the row always) -> hide it once setup is done.
+kotlin 4575dcb (compileDebugKotlin green) / swift 0e43004 (BUILD SUCCEEDED).
+Gate = `ProfileReadiness.isOnboarded` (the DURABLE signal, already used for
+routing; NOT allDone, so a later-added checklist row won't resurface the menu
+entry). Row hidden until readiness loads -> no flash for a finished member.
+Readiness was only loaded on the checklist screen, so both apps now load it on
+Account entry too (swift: `.task { completion.load() }`; kotlin: Account branch
+spins up the Activity-scoped, shared completion VM + LaunchedEffect load).
+The earlier "shows unconditionally" FLAG is now resolved.
