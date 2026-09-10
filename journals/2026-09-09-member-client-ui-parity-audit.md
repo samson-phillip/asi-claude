@@ -414,3 +414,18 @@ kotlin 9410bd4 / swift 1b94e84 (both build-green):
   hidden it once onboarded, i.e. why it was absent for John Doex). Removed the
   showFinishProfile param + the readiness load from the Account branch on both apps.
   (Net: back to the original mirror behaviour. The gate was a round-trip.)
+
+### Bugfix: checklist auto-closed on explicit entry (fallout from ungating Finish-Profile)
+Samson: "the finish your profile screen auto closes; likewise tapping the protection
+readiness button auto closes that screen." Root cause: the Completion/checklist
+screen auto-skips onboarded members to Home ("don't strand them there"). That skip
+fired on ANY first entry (swift `completionChecked` @State; kotlin `autoSkipChecked`
+remember). Once Finish Your Profile became unconditional (9410bd4/1b94e84), an
+onboarded member could tap into the checklist -- from Account's Finish Your Profile
+OR Home's readiness/finish-profile button (both -> Destination.Completion) -- and
+got bounced straight back out.
+Fix (kotlin fd49476 / swift dc7c5b1, both build-green): scope the auto-skip to the
+POST-LOGIN LANDING only, via a `checklistFromLogin` flag armed at the two login
+landings (login success + guest-name save) and consumed on the checklist's first
+load. Explicit taps leave it false -> checklist stays open. Returning onboarded
+members still skip it at login (unchanged).
