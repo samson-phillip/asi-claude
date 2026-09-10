@@ -268,3 +268,32 @@ B1 Plan Details (exact; Delete Account removed), Home parity, A4 TravelPrompt,
 A5 IntroVideo (backend-dep flagged to Innocent), B2, B3 (kept native), B4.
 Both PRs (#1) open into dev. Only remaining: on-device pass before release; A5
 shows a placeholder until Innocent publishes a splash video.
+
+---
+
+## Phase 2 — batch 6: bottom tab bar (branch `mirror-member-client-ui`)
+
+member-client's tabs are **Home · Docs · History · Account** -- the SAME
+destinations we already had, just member-client's names: Docs = our Glovebox,
+History = our Activity, Account = our "Profile" tab. So this was labels + one icon,
+not a re-order (the scout initially mis-read it as swapped destinations).
+
+kotlin c75fe19 / swift 0298e6c:
+- Tab labels -> Docs / History / Account (from Glovebox / Activity / Profile).
+- New **ic_tab_docs** document glyph (member-client's `docs`). The History clock
+  (`ic_tab_activity`) and Account user (`ic_tab_profile`) glyphs were ALREADY
+  member-client's, so only the Docs icon changed.
+- Activity screen title + the tour's Activity step reworded to "History" so the
+  tab and its screen agree.
+
+### Residual "Glovebox" naming (FLAG, not done)
+The tab now says "Docs" but "Glovebox" still appears in: the tour Glovebox step
+("Your Glovebox, always ready"), the Account "My documents -> Your Glovebox" row,
+and the feature/screen internals. member-client uses Documents/Docs throughout.
+A full Glovebox->Docs rename is broader than "the tabs" -- left for Samson to call.
+
+### Build note
+Disk hit 99% mid-work; cleared Xcode DerivedData + old simulators + device support
+(freed ~20Gi). That forced a fresh clone of the 2.4M-object Stripe SPM package,
+which flaked on the network twice before succeeding. Built with
+COMPILER_INDEX_STORE_ENABLE=NO to avoid the index datastore that filled the disk.
