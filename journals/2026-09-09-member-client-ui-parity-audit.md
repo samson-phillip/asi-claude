@@ -471,3 +471,30 @@ REMAINING HYPOTHESIS if still empty for some account: the field query country pa
 — member-client sends the member's `location.effectiveISO2`; we send device
 `TimeZoneCountry.current()`. Org-template fields aren't country-gated, so it wasn't
 the cause here, but a country mismatch could still starve country-specific fields.
+
+### Docs country param — checked, and a second cause of the empty screen
+Samson asked to check the field-query country param (my flagged fallback hypothesis).
+Confirmed a real, systemic divergence:
+- Our app tailors the doc-field query by the DEVICE TIMEZONE (`TimeZoneCountry.current()`).
+  member-client tailors by the member's HOME country resolved from their profile, and
+  sends `null` = "no filter, show everything" when the profile has no country
+  (memberCountry.ts getHomeCountryISO2: "Callers must treat null as no filter... a
+  member who can't see any [fields] would think the app was broken"). A country value
+  NARROWS the set, so a device tz that isn't the member's country narrowed it wrongly
+  → a second cause of salmson93's empty screen, on top of the field-kind drop.
+FIX (Samson chose "send null now"): kotlin 40a1388 / swift 521d778 — the doc query
+sends `countryISO2 = null` (member-client's no-country fallback), so the member always
+sees their own docs. Verified kotlin 30/30, swift TEST SUCCEEDED.
+
+TWO LATENT BUGS found along the way (NOT fixed — flagged for a follow-up):
+1. **`profile.countryId` is the opaque country RECORD ID, not an ISO2** (address form
+   sets `countryId = country.id`; `Country` has both `id` and `iso2`). Yet
+   `HomeViewModel.maybePromptTravel` compares `profile.countryId` to a detected ISO2 —
+   so the "I'm travelling" prompt almost certainly NEVER fires. Resolving home→ISO2
+   needs `listCountries()` (id→iso2).
+2. **Call routing (`CallViewModel.currentCountry`) also uses device tz** by a deliberate
+   in-code note — diverges from member-client's home-country routing.
+PROPER FOLLOW-UP: a shared "member home country ISO2" resolver (profile country → ISO2
+via listCountries, current ?? home ?? null, cached) used by Docs + Home incident types
++ call routing — mirroring member-client's memberCountry.ts / location.tsx. Bigger,
+product-level; not done.
