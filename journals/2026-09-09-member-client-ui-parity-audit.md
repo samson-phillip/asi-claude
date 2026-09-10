@@ -525,3 +525,23 @@ BackHandler maps each screen to its parent; Account + Glovebox add their own to 
 open sub-pane first; a live call swallows Back (never exit the app or drop the call).
 iOS unaffected (no hardware Back; on-screen chevrons already do this). Verified by
 compile + a scenario trace over all 14 destinations, NOT a live emulator run.
+
+### Login screen verbiage aligned to member-client (Samson)
+kotlin 775a884 / swift 3d76fb0, both build-green; iOS login verified live on the
+simulator (demo route, reverted after). Mapped our LoginScreen against member-client's
+and aligned:
+- **No eyebrows** anywhere (removed SIGN IN OR SIGN UP / VERIFY / EXPLORE AS A GUEST /
+  SIGN IN; Heading's eyebrow is now optional). Samson chose to drop them.
+- **Email step = member-client's hero**: "Take control of your freedom" + "Enter your
+  email and we'll send you a secure sign-in code." + button "Next". Samson chose this
+  over keeping our honest "the code creates your account" warning (documented tradeoff:
+  a mistyped email still provisions an account, but the reference doesn't surface it).
+- Guest: "Explore as a guest" (no period), "We will email you…" (was "We'll"),
+  placeholders "First name"/"Last name" (were "Jordan"/"Avery"), "Already Registered? Login".
+- Dropped trailing periods ("Verify it's you", "Welcome back"); busy labels
+  "Sending…"/"Signing in…"/"Verifying…".
+- LEFT the login ERROR strings as-is: member-client's "…Try password sign-in" is wrong
+  for the guest send path (shared message). Flag if full error parity is wanted.
+kotlin DynamicTypeTest updated to the new copy. One visual nit vs member-client: "freedom"
+is plain white here, gold-gradient there — verbiage matches; the gradient is an optional
+follow-up.
