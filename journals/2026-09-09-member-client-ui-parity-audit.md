@@ -297,3 +297,45 @@ Disk hit 99% mid-work; cleared Xcode DerivedData + old simulators + device suppo
 (freed ~20Gi). That forced a fresh clone of the 2.4M-object Stripe SPM package,
 which flaked on the network twice before succeeding. Built with
 COMPILER_INDEX_STORE_ENABLE=NO to avoid the index datastore that filled the disk.
+
+---
+
+## Phase 2 — batch 7: Account hub row inventory (branch `mirror-member-client-ui`)
+
+Samson-approved via the divergence review: add the 3 missing rows, strip
+sub-labels to member-client's bare style, + polish (More order, Personal Info
+icon, PIN wording).
+
+kotlin d1a0e59 (VERIFIED: compileDebugKotlin + processDebugResources green):
+- Added rows: **Finish Your Profile** (top of Account -> Destination.Completion,
+  the setup checklist), **History** (Account -> Destination.Activity), **Share**
+  (bottom of More -> OS share sheet, no chevron).
+- Stripped descriptive sub-labels -> bare rows; kept only Plan (live rate), PIN
+  (unset warning), Finish-Your-Profile (fixed prompt).
+- More reordered to Intro Video -> Support -> Settings -> Share.
+- Personal Info icon -> new ic_id_card (kotlin+swift previously disagreed; neither
+  was web's id-card).
+- PIN sub-label: "...during a consultation", em-dash, only when unset.
+- New glyphs ic_check_circle / ic_id_card / ic_row_share (History reuses the
+  history clock). AsiNavRow gained an optional `chevron` flag (Share = false).
+
+swift b0bb296 (NOT build-verified -- see below): full mirror. Share uses SwiftUI
+`ShareLink` (cleaner than an app closure). Three imagesets added.
+
+### Scout correction
+The scout claimed the avatar had "no camera badge / nothing uploads an avatar" --
+STALE. Verified the EditableAvatar + camera badge + presigned upload are live
+(profile photo shipped). Not a divergence; left alone.
+
+### Decision flagged for Samson
+"Finish Your Profile" shows UNCONDITIONALLY (mirrors member-client, which doesn't
+hide it once complete). May want gating on profile-completion later.
+
+### BLOCKER: disk + Stripe SPM clone
+Machine hit 100% disk repeatedly (down to ~2Gi; even Bash output-capture ENOSPC'd).
+Cleared DerivedData/simulators/device-support/gradle caches/TM snapshots, and
+(Samson-approved) ~/Library/Caches (~8.7G). Each DerivedData wipe forced a fresh
+clone of the 2.4M-object Stripe SPM repo, which flaked on the network
+("fetch-pack: invalid index-pack output") on EVERY swift-Account attempt. So the
+swift Account commit is UNBUILT. kotlin is verified. Needs a local `xcodebuild`
+on swift before merge; watch ShareLink + the two new AccountScreen params.
