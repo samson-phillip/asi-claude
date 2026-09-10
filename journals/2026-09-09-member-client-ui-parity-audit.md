@@ -442,3 +442,32 @@ a brand term in the guided tour ("Your Glovebox, always ready."), the Welcome
 carousel ("Digital glovebox") and the Home nudge -- member-client keeps "Glove Box"
 in exactly those spots (its own summary card still reads "Digital Glove Box.").
 Don't strip those without a new decision.
+
+### Docs screen — two more rounds from Samson's screenshots
+
+**Title block (kotlin cdf4167 / swift 6fcd006):** matched member-client's
+DocumentsScreen header on the Docs tab — a small centred "My Documents" over the
+big "Upload Your Documents." + the exact subheading "Stored securely and accessible
+to your legal first responder only during calls." Footer line adopts member-client's
+"legal first responder" wording too. Samson scoped this to the title block + copy
+(not the card / field list), and chose "match member-client" on the
+first-responder-vs-Law-Firm-Representative terminology (Docs screen only).
+
+**Empty-docs bug (kotlin d3dc459 / swift c29a951) — the important one.** Account
+salmson93@gmail.com: member-client lists 7 fields (CONTRACT/FORM groups: Service
+Agreement, example 5, Incident Initial Report Form…), our app showed "No document
+sections are configured yet." Root cause: `DocumentFieldKind.fromWire` mapped any
+unmapped wire type (agreement/form/example/policy/…) to `Unsupported`, and `load()`
+drops a section whose fields are all non-member-input → every section vanished for
+this account. member-client has NO such filter — its renderTypedField defaults an
+unknown type to a plain text input. FIX: fromWire default `Unsupported` -> `Text`,
+so unknown types render as text and their sections show. file/image stay uploads;
+Unsupported kept as a defensive sentinel, no longer produced. This REVERSES the old
+deliberate "keep org templates out" exclusion (it diverged from member-client).
+Tests updated on both apps (unknown->text/member-input; "Policy" section now appears;
+usable-glovebox count 3->4). Verified: kotlin 30/30, swift TEST SUCCEEDED.
+
+REMAINING HYPOTHESIS if still empty for some account: the field query country param
+— member-client sends the member's `location.effectiveISO2`; we send device
+`TimeZoneCountry.current()`. Org-template fields aren't country-gated, so it wasn't
+the cause here, but a country mismatch could still starve country-specific fields.
