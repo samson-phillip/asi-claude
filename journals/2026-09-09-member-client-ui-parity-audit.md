@@ -545,3 +545,16 @@ and aligned:
 kotlin DynamicTypeTest updated to the new copy. One visual nit vs member-client: "freedom"
 is plain white here, gold-gradient there — verbiage matches; the gradient is an optional
 follow-up.
+
+### Login: added the missing shield logo to the hero (Samson)
+Samson: the login hero was missing the shield logo member-client shows above the
+heading, and pointed me at member-client for the asset. Our own brand_shield.png is
+malformed (clipped/streaked -- ShieldLockup already dodges it by using the SVG), so
+I imported the reference's asset verbatim: member-client/public/asi-gold-logo.png ->
+swift asi_gold_logo.imageset (3x) + kotlin drawable-nodpi/asi_gold_logo.png. Wired it
+into the shared login Heading: centred gold shield (72pt) with a soft gold glow over a
+now-CENTRED heading + subtext, on every auth pane (matches member-client). kotlin 480f6f5
+/ swift 88dd47e, both build-green; iOS login hero verified live on the simulator (demo
+route, reverted). Remaining nits vs the reference (optional): "freedom" gold-gradient;
+the password button reads "Login with account password" there vs our "Use your password
+instead" (+ leading lock/user icons on those buttons).
