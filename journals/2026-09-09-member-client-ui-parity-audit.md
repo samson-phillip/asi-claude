@@ -587,3 +587,14 @@ pre-intro-once state via `git checkout <login-logo-commit> -- <file>` -- always 
 Welcome, login Back button restored, sign-out -> Welcome. The three login visual polish
 items (gold "freedom", faint logo glow, faded-gold disabled button) are in LoginScreen +
 AsiComponents and STAY. So: no intro-once, don't re-add it.
+
+### Intro-once RE-APPLIED (final, confirmed vs member-client)
+Samson: "show it once, like the member client." Checked member-client: it DOES gate its
+onboarding carousel on `hasSeenOnboarding()` (App.tsx: showIntro = !hasSeenOnboarding();
+"a returning member who signed out goes straight to Login"; OnboardingScreen has
+Register + Log in on every slide, marks seen on leave). So intro-once IS member-client
+parity, and member-client handles the shared-device Register the same way we do (Register
+on the first-run Welcome + login's guest/email account creation). Re-applied by restoring
+the two flow files to the intro-once commit (kotlin 5e58e01 / swift 83637a7). NET after
+the flip-flop: intro-once is ON (final). Visual polish (gold freedom / glow / faded button)
+was never touched by the flip-flop.
