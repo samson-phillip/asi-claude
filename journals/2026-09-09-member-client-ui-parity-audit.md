@@ -705,3 +705,15 @@ Gating unchanged (canCall && banners non-empty). Verified on the sim via a temp 
 route (seeded entitled + 2 banners, fake tab bar below): the "Sponsored" slider + dots sit
 pinned above the bar while tiles scroll above it; reverted the scaffolding clean. Both build.
 Commits kotlin 6f40fbf / swift c2f4833.
+
+### Account: hide the membership/plan card below the avatar
+Samson: hide the plan card below the profile picture to match member-client. Confirmed
+member-client's AccountScreen.tsx goes avatar → `<div className="section-title">Account`
+directly — no membership/plan card between the photo and the Account list. Ours rendered
+a MembershipCard there. Removed the call from the overview on both apps (kotlin OverviewPane
+line 446 / swift overviewPane). Plan stays reachable via the "Plan Details" row → Plan pane,
+so nothing is lost; the card component is left defined-but-unused (harmless). Verified the
+iOS overview on the sim (avatar → ACCOUNT heading, no card), reverted the temp demo clean.
+Both build. Commits kotlin edf1aff / swift 57572a3.
+NOTE: kotlin app/build.gradle.kts had an unrelated versionName 7.6→7.7 bump (not mine) —
+left uncommitted for Samson to handle.
