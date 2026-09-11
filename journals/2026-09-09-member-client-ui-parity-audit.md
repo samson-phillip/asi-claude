@@ -688,3 +688,20 @@ kotlin: BoxWithConstraints+horizontalScroll for the carousel. swift: GeometryRea
 ScrollView(.horizontal); shrank "Make default" to 15pt so the row doesn't truncate the
 last4. Verified on the sim against the screenshot (near-exact). Account suites green.
 Commits kotlin 2b59058 / swift a1c8e4a.
+
+### Home: pin the sponsor carousel to the foot (member-client parity)
+Samson: move the auto slider to the bottom of the screen always, like member-client.
+Checked the reference: `.sponsor-carousel` is `position: fixed; bottom: safe-bottom +
+tabbar-h + 24px; z-index: 35` — pinned above the tab bar, and `.screen.home-has-banner`
+reserves ~150px bottom padding so content scrolls clear. Ours had the carousel as the
+LAST item in the scroll (scrolled away). Fixed both:
+- kotlin: wrapped Home in a Box; carousel is a BottomCenter-aligned overlay (horizontal
+  window insets), and the scroll Column reserves a 150dp bottom spacer when the banner
+  shows. TabScaffold already puts Home content in a Box above the tab bar, so BottomCenter
+  = just above the bar.
+- swift: `.overlay(alignment: .bottom)` on the Home ScrollView; content `.padding(.bottom,
+  150)` when banner shows. RootView's VStack{content; AsiTabBar} puts Home above the bar.
+Gating unchanged (canCall && banners non-empty). Verified on the sim via a temp HOME_DEMO
+route (seeded entitled + 2 banners, fake tab bar below): the "Sponsored" slider + dots sit
+pinned above the bar while tiles scroll above it; reverted the scaffolding clean. Both build.
+Commits kotlin 6f40fbf / swift c2f4833.
