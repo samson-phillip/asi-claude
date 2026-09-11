@@ -645,3 +645,26 @@ and call it on every entry into sign-in.
   and all three signOut sites.
 Unit-tested both (LoginViewModelTest/Tests: reset from code pane → email pane,
 fields cleared). Builds + login suites green. Commits kotlin d87d461 / swift c9f1709.
+
+### Payment Methods: single-card → multi-card list (member-client Saved Cards)
+Samson: member-client accepts multiple cards, lists them, one can be made default —
+update the app. Explored all three (3 parallel agents): member-client SavedCardsScreen
+= carousel + list, per-card Make default / Remove / Add, default badge; and CRUCIALLY
+BOTH apps already had the full plumbing — PaymentCard.isDefault, api list/attach/
+setDefault/detach, and VM makeDefaultCard/removeCard — but the UI deliberately showed
+ONE card (explicit comment: "make-default/remove wiring stays in API/VM for a future
+multi-card view"). So this was a UI-only surfacing job.
+
+Asked Samson: drop the app's edit-expiry/ZIP (member-client has none) or keep it? He
+chose KEEP (superset). Result on both apps: Payment Methods lists every card (reusing
+the mailing-address list pattern — gold Default pill + text actions), non-default cards
+get "Make default", every card gets Edit + Remove, plus "Add payment method". Remove
+asks first (kotlin AlertDialog / swift .alert: "Remove {brand} ending {last4}?"). Edit
+opens a per-card sub-view (expiry/ZIP + Save) gated by a new editingCardId; a new
+paneBack() pops the edit before leaving the pane (wired to the title-bar back + Android
+hardware back). Title "Payment method" → "Payment Methods".
+
+Verified the iOS list AND edit sub-view on the sim via a temp CARDS_DEMO route (two
+seeded cards), screenshotted both, reverted the scaffolding clean. New unit tests both
+apps (open→list, edit seeds form, paneBack pops edit, remove asks-then-detaches, cancel
+keeps). Builds + full account suites green. Commits kotlin dd7e37c / swift 8e1ee40.
