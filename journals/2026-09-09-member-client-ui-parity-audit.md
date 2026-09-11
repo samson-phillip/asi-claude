@@ -623,3 +623,25 @@ Mirrored on both apps:
 Builds green both sides; login JVM unit tests pass. Pre-existing unrelated break:
 ScreenRenderTest.kt (CallScreen signature drift) blocks the androidTest set — not
 mine, HEAD 204ecfe, left as-is. Commits kotlin af19399 / swift 9a53839.
+
+### Bug: sign-out after OTP lands on the code pane, not the email pane
+Samson: "when you logout after using otp verification to logout, the user is
+landed to the otp verification screen instead of the login screen." Root cause:
+the LoginViewModel is long-lived (kotlin: Activity-scoped `viewModel()`; swift:
+`@State` in RootView, whole app session), so a code sign-in leaves it parked on
+`step = code` with a stale masked destination. Routing back to sign-in re-shows
+that pane.
+
+Fix: added `LoginViewModel.reset()` (→ pristine email pane, countdown cancelled)
+and call it on every entry into sign-in.
+- kotlin: one guarded reset in the Destination.Login branch —
+  `var didResetLogin by rememberSaveable{false}; if(!didResetLogin){reset();…}` —
+  fires once per real entry but survives a config change (composition recreate)
+  so rotating on the code pane doesn't bounce you off mid-verify. Runs before the
+  prefillEmail LaunchedEffect, which re-fills after.
+- swift: `.onAppear` would clobber the deep-link prefill (set at the transition,
+  before the view appears), so instead reset at each route to `.login` — the S3
+  session-ended, the checkout-return prefill (reset THEN set email), Welcome→login,
+  and all three signOut sites.
+Unit-tested both (LoginViewModelTest/Tests: reset from code pane → email pane,
+fields cleared). Builds + login suites green. Commits kotlin d87d461 / swift c9f1709.
