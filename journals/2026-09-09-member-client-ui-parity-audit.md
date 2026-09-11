@@ -668,3 +668,23 @@ Verified the iOS list AND edit sub-view on the sim via a temp CARDS_DEMO route (
 seeded cards), screenshotted both, reverted the scaffolding clean. New unit tests both
 apps (open→list, edit seeds form, paneBack pops edit, remove asks-then-detaches, cancel
 keeps). Builds + full account suites green. Commits kotlin dd7e37c / swift 8e1ee40.
+
+### Payment Methods v2: match the actual member-client screenshot (carousel + Your cards)
+Samson shared the real member-client Payment Methods screenshot. My first pass (stacked
+plain cards + text actions + info chip) diverged. Read the source (SavedCardsScreen.tsx +
+screens.css) for exact fidelity and reworked both apps to match:
+- **Carousel** (`.card-carousel`): horizontally-scrolling gradient card graphics, each
+  ~86% width so the next peeks; the reference's 4 gradients (cc-grad-0..3, hardcoded hex),
+  gold "chip", uppercase brand, masked number, cardholder + MM/YY; the DEFAULT card ringed
+  in a 2px gold border (`.credit-card.default`).
+- **"Your cards" list**: compact rows — a card medallion (kotlin ic_row_card / swift SF
+  creditcard), "{brand} •••• {last4}" + "Exp. Date MM / YY" (formatExpiry = "MM / YY"),
+  a GREEN Default badge (`.badge.ok`) or a gold "Make default" link, and a circular TRASH
+  button (new ic_trash on kotlin / SF trash on swift).
+- Footer: "+ Replace Card" (SecondaryButton ghost) with a card on file, "Add payment
+  method" when empty. Dropped the info chip.
+- Edit (our extra) kept: tapping a row's card body → the expiry/ZIP editor.
+kotlin: BoxWithConstraints+horizontalScroll for the carousel. swift: GeometryReader +
+ScrollView(.horizontal); shrank "Make default" to 15pt so the row doesn't truncate the
+last4. Verified on the sim against the screenshot (near-exact). Account suites green.
+Commits kotlin 2b59058 / swift a1c8e4a.
