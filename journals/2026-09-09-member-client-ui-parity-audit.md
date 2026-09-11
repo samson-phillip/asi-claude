@@ -598,3 +598,28 @@ on the first-run Welcome + login's guest/email account creation). Re-applied by 
 the two flow files to the intro-once commit (kotlin 5e58e01 / swift 83637a7). NET after
 the flip-flop: intro-once is ON (final). Visual polish (gold freedom / glow / faded button)
 was never touched by the flip-flop.
+
+### Login OTP verify: channel chooser (email / phone)
+Samson: "checkout the login otp verification screen to match the member client …
+add the email or phone number verification options." member-client's OtpStep
+(LoginScreen.tsx 373-387) renders a "Channel choices" list ABOVE the code boxes:
+an EMAIL row always (masked email), an SMS row only when `otp.maskedPhone` exists,
+each an .lr-icon medallion + masked destination + a check-circle on the active
+channel; tapping the inactive row = `onResend(channel)` (re-send + switch). No
+`.list-row.on` CSS exists — the check is the only selected-state cue.
+
+Mirrored on both apps:
+- kotlin: new ChannelChooser/ChannelRow in CodePane; ic_mail + ic_phone drawables
+  ported from icons.tsx (stroke-only, tinted at use). onResend became
+  (OtpChannel)->Unit; dropped the standalone "Send by text" link + onSendByText.
+  Copy: body loses "…to <dest>" (rows show it); footer "Didn't get a code?" →
+  "Didn't receive a code?" (member-client wording). Fixed AccessibilityTest +
+  DynamicTypeTest call sites/copy.
+- swift: channelChooser/channelRow in codePane; SF Symbols envelope/phone +
+  checkmark.circle.fill; same copy + drop of the send-by-text button.
+- Verified render on iPhone 16 Pro sim via a temp env-gated LOGIN_CODE_DEMO route
+  (seeded masked email+phone), screenshotted, then reverted the scaffolding clean.
+  Screenshot confirmed: mail row (gold check) over phone row, correct copy.
+Builds green both sides; login JVM unit tests pass. Pre-existing unrelated break:
+ScreenRenderTest.kt (CallScreen signature drift) blocks the androidTest set — not
+mine, HEAD 204ecfe, left as-is. Commits kotlin af19399 / swift 9a53839.
