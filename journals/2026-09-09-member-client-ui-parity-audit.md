@@ -575,3 +575,15 @@ kotlin 73aa547 / swift d4af90d, both build-green; iOS verified live. Four items:
 My opinion given + Samson agreed. Optional nit remaining: disabled-gold reads slightly
 olive at 0.3 over navy -- can bump opacity if wanted. Also still open: password button
 "Login with account password" + button lead icons (member-client) vs ours.
+
+### Intro-once REVERTED (Samson's re-decision)
+Samson reconsidered the intro-once flow: on a SHARED DEVICE, hiding Welcome after the
+first launch made the "Register" (web checkout) unreachable for a second person. I
+advised the gap was narrow (login's guest + email-code flow still create accounts; only
+the paid web Register on Welcome was blocked) and offered: keep-intro-once + add a
+Register link, revert, or leave as-is. Samson chose REVERT. Cleanly reverted just the
+flow files (kotlin 8295eb5 MainActivity / swift df293e4 AttorneyShieldApp) back to their
+pre-intro-once state via `git checkout <login-logo-commit> -- <file>` -- always show
+Welcome, login Back button restored, sign-out -> Welcome. The three login visual polish
+items (gold "freedom", faint logo glow, faded-gold disabled button) are in LoginScreen +
+AsiComponents and STAY. So: no intro-once, don't re-add it.
