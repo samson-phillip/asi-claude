@@ -558,3 +558,20 @@ now-CENTRED heading + subtext, on every auth pane (matches member-client). kotli
 route, reverted). Remaining nits vs the reference (optional): "freedom" gold-gradient;
 the password button reads "Login with account password" there vs our "Use your password
 instead" (+ leading lock/user icons on those buttons).
+
+### Login polish + intro-once flow (Samson)
+kotlin 73aa547 / swift d4af90d, both build-green; iOS verified live. Four items:
+1. "freedom" in the email hero tinted gold (member-client gradient) -- Heading gained
+   a `highlight` param (AnnotatedString kotlin / concatenated Text swift).
+2. Shield logo faint gold glow (kotlin: radialGradient behind; swift: shadow 0.35/30).
+3. Disabled PrimaryButton -> FAINT active gold (ctaBg @ ~0.3) instead of navy border,
+   with faded ctaFg text. App-wide (member-client's disabled style).
+4. **Intro-once**: Welcome shown only on first launch; a returning member or a signed-out
+   user goes straight to Login. Persisted flag (kotlin SharedPrefs `intro_seen` via a new
+   `markIntroSeen` AppRoot param; swift UserDefaults `asi.introSeen`). All sign-out routes
+   Welcome->Login. Login LOST its Back button (member-client's email step has none); the
+   Android system-Back backTarget makes Login a root (GuestName->Login). Register stays
+   reachable (Welcome Register = web checkout; login keeps guest + email-code account creation).
+My opinion given + Samson agreed. Optional nit remaining: disabled-gold reads slightly
+olive at 0.3 over navy -- can bump opacity if wanted. Also still open: password button
+"Login with account password" + button lead icons (member-client) vs ours.
