@@ -735,3 +735,15 @@ cleared DerivedData/*/Build + gradle transforms (kept Stripe SourcePackages), re
 Version bumps (kotlin versionName 7.7 / swift MARKETING_VERSION 8.01 + kotlin app/release/*)
 were pre-existing worktree changes; kept OUT of the work-order commits for Samson to handle.
 Next: behavioral 06-11.
+
+### Innocent work-order — behavioral 06/07/10 SHIPPED (both apps, 12 Sep)
+- 06 travel-prompt copy no longer claims cross-border routing ("We'll note that you're
+  travelling") — interim until 08. kotlin 1fd771e / swift 9214f1e.
+- 07 incident tiles country-scoped: listIncidentTypes(countryISO2) → adminIncidentTypeList
+  (countryISO2:), passed the member's resolved home ISO2 (MemberCountry). Legal separation.
+  kotlin c5a333a / swift 36fe6c0.
+- 10 sign-out revokes the session: AsiApi.logout() fires `mutation{logout}` best-effort with
+  the token still attached, then clears (kotlin scope.launch / swift Task). kotlin b2b2aa1 / swift e476921.
+All build. Remaining behavioral: 08 (location-override persistence + currentSubdivision — a
+real feature; currentCountry already sends home), 09 (Emergency Contacts CRUD — new screen),
+11 (push — needs a product decision: build APNs/FCM infra vs hide the preferences screen).
