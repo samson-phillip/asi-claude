@@ -717,3 +717,21 @@ iOS overview on the sim (avatar → ACCOUNT heading, no card), reverted the temp
 Both build. Commits kotlin edf1aff / swift 57572a3.
 NOTE: kotlin app/build.gradle.kts had an unrelated versionName 7.6→7.7 bump (not mine) —
 left uncommitted for Samson to handle.
+
+### Innocent work-order — CRITICAL fixes 01-05 SHIPPED (both apps, 12 Sep)
+Samson: work the items in the best sequence, he'll test. Did the "fix first" batch:
+- 01 History hang: dropped attorneyDisplayName from commsCallsByMember.attorneyAssignments
+  (kept {id status}); listCallHistory throws → "Try again" retry. kotlin e976d55 / swift f087c73.
+- 05 Storefront ?from=app in AsiConfig.planUrl. kotlin c234c6e / swift 05f23b1.
+- 04 Report member-ended calls: commsUpdateCallState(completed, endedAt, member_pin|member_cancelled)
+  in end(), best-effort NonCancellable/detached Task; backend outcomes stay comms'. kotlin c449625 / swift 76b1df6.
+- 02 Keep screen awake in calls: kotlin View.keepScreenOn / swift isIdleTimerDisabled for the
+  CallScreen lifetime. kotlin 0a4c4d4 / swift 71fae07. (Android FG-service = separate follow-up.)
+- 03 PIN 4→4-8, no auto-submit, Confirm button. All surfaces on AsiPinPad (dots grow 4→8);
+  Setup keeps its Continue button; Account-change + call-end got Confirm buttons; tests updated.
+  kotlin 13ac2e2 / swift b4c0e7b.
+All build; PIN + activity + account unit suites green. Disk hit 0 mid-item-03 (recurring) —
+cleared DerivedData/*/Build + gradle transforms (kept Stripe SourcePackages), recovered.
+Version bumps (kotlin versionName 7.7 / swift MARKETING_VERSION 8.01 + kotlin app/release/*)
+were pre-existing worktree changes; kept OUT of the work-order commits for Samson to handle.
+Next: behavioral 06-11.
