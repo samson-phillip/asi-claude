@@ -747,3 +747,12 @@ Next: behavioral 06-11.
 All build. Remaining behavioral: 08 (location-override persistence + currentSubdivision — a
 real feature; currentCountry already sends home), 09 (Emergency Contacts CRUD — new screen),
 11 (push — needs a product decision: build APNs/FCM infra vs hide the preferences screen).
+
+### Work-order 11 — push preferences hidden (Paul's call)
+Paul chose "hide" over building APNs/FCM infra. Removed the "Push notifications" row from
+Account→Settings on both apps; the NotificationSettings screen stays in code, unreachable,
+to restore when token registration lands. kotlin be95fdb / swift 4efcdce.
+Behavioral batch now: 06/07/10/11 SHIPPED. Remaining are the two substantial FEATURES:
+08 (location-override persistence — needs a per-member override store + a Current Location
+picker + call currentCountry=current??home + currentSubdivision) and 09 (Emergency Contacts
+CRUD — a new list screen). Each warrants its own focused pass.
